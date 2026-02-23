@@ -1,0 +1,6 @@
+{
+	"servername" : "localhost",
+	"username" : "YOUR_USERNAME"
+	"password" : "YOUR_PASSWORD"
+	"dbname" : "GROUP_PROJECT_DB_NAME"
+}
