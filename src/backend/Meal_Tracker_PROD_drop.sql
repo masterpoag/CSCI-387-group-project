@@ -1,8 +1,8 @@
 -- Created by Redgate Data Modeler (https://datamodeler.redgate-platform.com)
--- Last modification date: 2026-02-27 14:24:22.733
+-- Last modification date: 2026-03-02 21:29:10.798
 
 -- foreign keys
-ALTER TABLE User
+ALTER TABLE Admin
     DROP FOREIGN KEY Admin_User;
 
 ALTER TABLE Recipe
