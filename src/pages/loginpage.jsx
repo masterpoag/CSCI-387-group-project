@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function loginpage({/* Add Vars here for passthrough*/}) {
+export default function LoginPage({/* Add Vars here for passthrough*/}) {
   return (
     <div >
         <head>
