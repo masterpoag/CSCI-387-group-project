@@ -5,14 +5,12 @@ import LoginPage from "./pages/loginpage.jsx"
 
 function App() {
   return (
-    <Router basename='/~cgpoag/CSCI-387'>
-      <Routes>
-        <Route path="/" element={<HomePage /*Add Vars here for passthrough*/ />} /> 
-      </Routes>
-      <Routes>
-        <Route path="/login" element={<LoginPage /*Add Vars here for passthrough*/ />} /> 
-      </Routes>
-    </Router>
+    <Router basename="/~cgpoag/CSCI-387">
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+    </Routes>
+  </Router>
 
   )
 }
