@@ -27,5 +27,5 @@ dist-ssr
 *.env
 
 # backend
-venv/*
-__pycahce__/*
+**/venv/*
+**/__pycahce__/*
