@@ -1,4 +1,4 @@
-import mysql.connection
+import mysql.connector
 import json
 
 
@@ -6,9 +6,9 @@ def database_connect():
     db_key = ""
 
     with open("database.env") as file:
-        db_keyf = json.load(file)
+        db_key = json.load(file)
 
-    connecton = mysql.connector.connect(
+    connection = mysql.connector.connect(
         host=db_key['servername'],
         port=3306,
         database=db_key['dbname'],
