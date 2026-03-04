@@ -1,22 +1,77 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 import json
 import db
 import time
 import math
 
 app = FastAPI()
-
 connection, cursor = db.database_connect()
 
-@app.get("/api/cookie{uid}")
-async def cookie_hash(uid: int):
-    t = time.time()
+class NewUser(BaseModel):
+    uname: str
+    upass: str
+    weight: float
+    atype: int
+    isMetric: bool
+    calGoal: float | None = None
 
-    return f"{{ID:{(math.pi ** (t * uid)) ** 0.5}}}"
+class Result():
+    def __init__(self) -> None:
+        self.data = {"Result": "Success", "Message": "", "Data": None}
+    def dump(self) -> str:
+        return json.dumps(self.data)
+
+# Helper functions
+async def hash_UID(uid: int) -> float:
+    try:
+        result = ((math.pi * uid) ** 0.5) + (math.e ** 4.5)
+    except:
+        return -1
+
+    return result
+
+async def calc_UID(hash: float) -> int:
+    try:
+        result =  math.floor(((hash - (math.e ** 4.5)) ** 2) / math.pi)
+    except:
+       return -1
+
+    return result
+
+# API Endpoints
+@app.get("/api/cookie/")
+async def cookie_hash(uid: int):
+    res = Result()
+
+    hash = hash_UID(uid)
+    if hash != -1:
+        res.data["Data"] = hash
+    else:
+        res.data["Result"] = "Failed"
+
+    return res.dump()
+
+@app.post("/api/register?hascg={hasCG}")
+async def register(hasCG: bool):
+    # A few things:
+    # 1. Check if the username is already in the database
+    # 2. Check if the calorie goal is filled
+    # 3. Calculate hash password
+    # 4. Store information in db
+
+    
+    if len(NewUser.uname):
+        pass
+    cursor.execute("SELECT FROM User WHERE uname == ?")
 
 @app.get("/hello")
 async def read_root():
-    return "Hi! Hallo! Bonjour!"
+    ret = Result()
+
+    ret.data["Message"] = "Hi! Hallo! Bonjour!"
+
+    return ret.dump()
 
 
 
