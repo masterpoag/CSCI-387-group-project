@@ -20,7 +20,8 @@ class Result():
     def __init__(self) -> None:
         self.data = {"Result": "Success", "Message": "", "Data": None}
     def dump(self) -> str:
-        return json.dumps(self.data)
+        d = self.data
+        return json.dumps(d)
 
 # Helper functions
 async def hash_UID(uid: int) -> float:
@@ -40,11 +41,11 @@ async def calc_UID(hash: float) -> int:
     return result
 
 # API Endpoints
-@app.get("/api/cookie/")
+@app.get("/api/cookie")
 async def cookie_hash(uid: int):
     res = Result()
 
-    hash = hash_UID(uid)
+    hash = await hash_UID(uid)
     if hash != -1:
         res.data["Data"] = hash
     else:
@@ -59,11 +60,20 @@ async def register(hasCG: bool):
     # 2. Check if the calorie goal is filled
     # 3. Calculate hash password
     # 4. Store information in db
-
+    res = Result()
     
-    if len(NewUser.uname):
-        pass
-    cursor.execute("SELECT FROM User WHERE uname == ?")
+    if len(NewUser.uname) > 30:
+        res.data["Result"] = "Failed"
+        res.data["Message"] = "uname is greater than 30"
+        return res.dump()
+    
+    result = cursor.execute("SELECT uname FROM User WHERE uname = ?", NewUser.uname)
+
+    if type(result) != None:
+        res.data["Result"] = "Failed"
+        res.data["Message"] = "uname already exsists in database"
+        res.data["Data"] = result
+        return res.dump()
 
 @app.get("/hello")
 async def read_root():

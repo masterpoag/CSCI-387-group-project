@@ -13,7 +13,8 @@ def database_connect():
         port=3306,
         database=db_key['dbname'],
         user=db_key['username'],
-        password=db_key['password']
+        password=db_key['password'],
+        raise_on_warnings=True
     )
 
     return (connection, connection.cursor())

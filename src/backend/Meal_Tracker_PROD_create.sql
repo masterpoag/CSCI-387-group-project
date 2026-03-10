@@ -1,5 +1,5 @@
 -- Created by Redgate Data Modeler (https://datamodeler.redgate-platform.com)
--- Last modification date: 2026-03-02 21:42:20.638
+-- Last modification date: 2026-03-05 19:35:23.304
 
 -- tables
 -- Table: Admin
@@ -17,12 +17,12 @@ CREATE TABLE Food (
     CONSTRAINT Food_pk PRIMARY KEY (fid)
 ) COMMENT 'Assumes a default portion size';
 
--- Table: Portion
-CREATE TABLE Portion (
+-- Table: Quanity
+CREATE TABLE Quanity (
     Food_fid int  NOT NULL,
     Recipe_rid int  NOT NULL,
-    qty decimal(1,1)  NOT NULL,
-    CONSTRAINT Portion_pk PRIMARY KEY (Food_fid,Recipe_rid)
+    qty decimal(10,10)  NOT NULL,
+    CONSTRAINT Quanity_pk PRIMARY KEY (Food_fid,Recipe_rid)
 ) COMMENT 'Recipe Food Bridge Entity';
 
 -- Table: Recipe
@@ -42,10 +42,11 @@ CREATE TABLE User (
     uid int  NOT NULL,
     uname varchar(20)  NOT NULL,
     pass varchar(50)  NOT NULL,
-    cal_goal int  NOT NULL,
+    createTime timestamp  NOT NULL,
     wieght float  NOT NULL,
-    wunit int  NOT NULL,
     account_type int  NOT NULL,
+    isMetric bool  NOT NULL,
+    cal_goal float(10,10)  NULL,
     CONSTRAINT User_pk PRIMARY KEY (uid)
 );
 
@@ -72,12 +73,12 @@ ALTER TABLE Recipe ADD CONSTRAINT Recipe_User FOREIGN KEY Recipe_User (User_uid)
 ALTER TABLE Workout ADD CONSTRAINT Workout_User FOREIGN KEY Workout_User (User_uid)
     REFERENCES User (uid);
 
--- Reference: portion_Recipe (table: Portion)
-ALTER TABLE Portion ADD CONSTRAINT portion_Recipe FOREIGN KEY portion_Recipe (Recipe_rid)
+-- Reference: portion_Recipe (table: Quanity)
+ALTER TABLE Quanity ADD CONSTRAINT portion_Recipe FOREIGN KEY portion_Recipe (Recipe_rid)
     REFERENCES Recipe (rid);
 
--- Reference: rec_food_Food (table: Portion)
-ALTER TABLE Portion ADD CONSTRAINT rec_food_Food FOREIGN KEY rec_food_Food (Food_fid)
+-- Reference: rec_food_Food (table: Quanity)
+ALTER TABLE Quanity ADD CONSTRAINT rec_food_Food FOREIGN KEY rec_food_Food (Food_fid)
     REFERENCES Food (fid);
 
 -- End of file.
