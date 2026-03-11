@@ -19,9 +19,8 @@ class NewUser(BaseModel):
 class Result():
     def __init__(self) -> None:
         self.data = {"Result": "Success", "Message": "", "Data": None}
-    def dump(self) -> str:
-        d = self.data
-        return json.dumps(d)
+    def get_data(self) -> dict:
+        return self.data
 
 # Helper functions
 async def hash_UID(uid: int) -> float:
@@ -51,10 +50,10 @@ async def cookie_hash(uid: int):
     else:
         res.data["Result"] = "Failed"
 
-    return res.dump()
+    return res.get_data()
 
-@app.post("/api/register?hascg={hasCG}")
-async def register(hasCG: bool):
+@app.post("/api/register")
+async def register(nu: NewUser):
     # A few things:
     # 1. Check if the username is already in the database
     # 2. Check if the calorie goal is filled
@@ -62,18 +61,21 @@ async def register(hasCG: bool):
     # 4. Store information in db
     res = Result()
     
-    if len(NewUser.uname) > 30:
+    if len(nu.uname) > 30:
         res.data["Result"] = "Failed"
         res.data["Message"] = "uname is greater than 30"
-        return res.dump()
+        return res.get_data()
     
-    result = cursor.execute("SELECT uname FROM User WHERE uname = ?", NewUser.uname)
+    result = cursor.execute("SELECT uname FROM User WHERE uname = %s", [nu.uname])
+    
+    res.data["Result"] = result
 
-    if type(result) != None:
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "uname already exsists in database"
-        res.data["Data"] = result
-        return res.dump()
+    return res.get_data()
+    #if len(result) != 0:
+    #    res.data["Result"] = "Failed"
+    #    res.data["Message"] = "uname already exsists in database"
+    #    res.data["Data"] = result
+    #    return res.get_data()
 
 @app.get("/hello")
 async def read_root():
@@ -81,7 +83,7 @@ async def read_root():
 
     ret.data["Message"] = "Hi! Hallo! Bonjour!"
 
-    return ret.dump()
+    return ret.get_data()
 
 
 
