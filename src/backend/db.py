@@ -17,4 +17,4 @@ def database_connect():
         raise_on_warnings=True
     )
 
-    return (connection, connection.cursor())
+    return (connection, connection.cursor(dictionary=True))

@@ -1,5 +1,5 @@
 -- Created by Redgate Data Modeler (https://datamodeler.redgate-platform.com)
--- Last modification date: 2026-03-05 19:35:23.304
+-- Last modification date: 2026-03-12 21:28:10.448
 
 -- tables
 -- Table: Admin
@@ -39,14 +39,14 @@ CREATE TABLE Recipe (
 
 -- Table: User
 CREATE TABLE User (
-    uid int  NOT NULL,
+    uid int  NOT NULL AUTO_INCREMENT,
     uname varchar(20)  NOT NULL,
-    pass varchar(50)  NOT NULL,
-    createTime timestamp  NOT NULL,
-    wieght float  NOT NULL,
+    pass varchar(64)  NOT NULL,
+    createTime bigint  UNSIGNED NOT NULL,
+    wieght double(5,2)  NOT NULL,
     account_type int  NOT NULL,
     isMetric bool  NOT NULL,
-    cal_goal float(10,10)  NULL,
+    cal_goal int  NULL,
     CONSTRAINT User_pk PRIMARY KEY (uid)
 );
 
