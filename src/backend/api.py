@@ -87,7 +87,7 @@ async def register(hasCG: bool, nu: NewUser):
             return res.get_data()
 
         # Set up variables
-        isMetric = 1 if nu.isMetric else 1
+        isMetric = 1 if nu.isMetric else 0
         pswd, create_time = await hash_pass(nu.upass) 
        
         stmt = ""
