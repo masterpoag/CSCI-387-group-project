@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -19,4 +18,50 @@ Create standard homepage with basic global variables (basic css, vars like dark 
 Setup database framework(user data, food, meals)
 
 Have a way to add calories and nutrients from the day
->>>>>>> 4146d26dcf381c249b06c12e58b3e5a2ef222d66
+
+## Backend Documentation
+There is an interactive API at [https://gp-test.vroey.us/docs](https://gp-test.vroey.us).
+
+**Creating a new user**:
+Here is an example GET request when registering a new user:
+```
+curl -X 'POST' \
+  'http://gp-test.vroey.us/api/register?hasCG=true' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "uname": "colby@test.com",
+  "upass": "password123!",
+  "weight": 123.12,
+  "atype": 1,
+  "isMetric": false,
+  "calGoal": 2500
+}'
+```
+
+The data part (`-d`), is important here. You are building a `NewUser()` python object. It has the following fields.
+<img width="375" height="215" alt="image" src="https://github.com/user-attachments/assets/4b4dfdd3-b218-44fd-8bbb-82f42e928937" />
+
+Fields with a red astrix (`*`), are mandatory. Additionally the `hasCG` field (hasCalorieGoal) in the URL is also mandatory. 
+
+`weight` needs to be a float. Note that only the first two decimals (`100.xx`) will be stored in the database.
+
+If you set the `hasCG` value to true and don't provide a `calGoal`, you will recieve an error from the database.
+
+*Data Response*: `null`
+
+**API Response**
+The api will always respond with this json object at a minimum.
+
+Here is an example from `/hello`:
+```
+{
+  "Result": "Success",
+  "Message": "Hi! Hallo! Bonjour!",
+  "Data": null
+}
+```
+Fields:
+- Result: Always either `"Success", "Failed", or "Warning".
+- Message: An english description of the result.
+- Data: Default: `null`, otherwise has data specified by the api endpoint. 
