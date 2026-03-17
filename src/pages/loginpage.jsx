@@ -73,6 +73,7 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
           calGoal: 2500
         }),
       });
+      console.log(response);
 
       const data = await response.json();
 
