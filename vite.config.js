@@ -3,6 +3,6 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/~cgpoag/CSCI-387/",
+  base: "/~group3sp26/",
   plugins: [react()],
 })

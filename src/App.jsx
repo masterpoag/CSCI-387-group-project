@@ -15,7 +15,7 @@ function App() {
 
 
   return (
-    <Router basename="/~cgpoag/CSCI-387/">
+    <Router basename="/~group3sp26/">
     <nav style={navStyle}>
         {/* Navigation links */}
         <NavLink to="/">
