@@ -23,7 +23,10 @@ Have a way to add calories and nutrients from the day
 There is an interactive API at [https://gp-test.vroey.us/docs](https://gp-test.vroey.us).
 
 **Creating a new user**:
-Here is an example GET request when registering a new user:
+
+This endpoint requires a POST request.
+
+Here is an example POST request when registering a new user:
 ```
 curl -X 'POST' \
   'http://gp-test.vroey.us/api/register?hasCG=true' \
@@ -50,7 +53,31 @@ If you set the `hasCG` value to true and don't provide a `calGoal`, you will rec
 
 *Data Response*: `null`
 
+**Loggging in**
+
+This endpoint requires a GET request.
+
+Here is an example GET request.
+```
+curl -X 'GET' \
+  'http://gp-test.vroey.us/api/login?uname=colby%40test.com&upass=password123%21' \
+  -H 'accept: application/json'
+```
+
+Every field is mandatory.
+
+This GET request returns:
+```
+{
+  "Result": "Success",
+  "Message": "colby@test.com successfully signed in",
+  "Data": 93.98045859812781
+}
+```
+The `Data` field contains the hashed uid to be stored in a cookie. 
+
 **API Response**
+
 The api will always respond with this json object at a minimum.
 
 Here is an example from `/hello`:
