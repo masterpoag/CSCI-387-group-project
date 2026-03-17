@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import json
 import db
@@ -8,6 +9,22 @@ import hashlib
 import mysql.connector
 
 app = FastAPI()
+
+origins = [
+    "http://0.0.0.0:8000",
+    "http://0.0.0.0",
+    "https://turing.cs.olemiss.edu",
+    "https://gp-test.vroey.us",
+    ]
+
+app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        )
+
 connection, cursor = db.database_connect()
 
 class NewUser(BaseModel):
@@ -70,7 +87,7 @@ async def register(hasCG: bool, nu: NewUser):
     # 3. Calculate hash password
     # 4. Store information in db
     res = Result()
-   
+    
     try:       
         if len(nu.uname) > 30:
             res.data["Result"] = "Failed"
