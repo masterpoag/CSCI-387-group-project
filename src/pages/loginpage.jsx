@@ -56,8 +56,8 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
       }
       //TODO: Change to actual backend endpoint
       const endpoint = isRegistering
-        ? "/api/register"
-        : "/api/login";
+        ? "localhost:8000/api/register?hasCG=false"
+        : "localhost:8000/api/login?";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -65,8 +65,12 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
+          uname: formData.email,
+          upass: formData.password,
+          weight: 0.01,             // All hardcodes need to be added to the register form 
+          atype: 1,                             // Most likely hardcoded in most cases
+          isMetric: false,
+          calGoal: 2500
         }),
       });
 
