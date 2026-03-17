@@ -56,8 +56,8 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
       }
       //TODO: Change to actual backend endpoint
       const endpoint = isRegistering
-        ? "http://turing.cs.olemiss.edu:8181/api/register?hasCG=false"
-        : "http://turing.cs.olemiss.edu:8181/api/login?";
+        ? "http://130.74.96.8:8181/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Somewhat as long as you are on the olemiss campus wifi. Do I care. NO.
+        : "http://130.74.96.8:8181/api/login?";
 
       const response = await fetch(endpoint, {
         method: "POST",
