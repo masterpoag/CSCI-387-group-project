@@ -56,8 +56,8 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
       }
       //TODO: Change to actual backend endpoint
       const endpoint = isRegistering
-        ? "http://gp-test.vroey.us/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Somewhat as long as you are on the olemiss campus wifi. Do I care. NO.
-        : "http://gp-test.vroey.us/api/login?";
+        ? "https://gp-test.vroey.us/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Somewhat as long as you are on the olemiss campus wifi. Do I care. NO.
+        : "https://gp-test.vroey.us/api/login?";
 
       const response = await fetch(endpoint, {
         method: "POST",
