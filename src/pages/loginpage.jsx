@@ -56,8 +56,8 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
       }
       //TODO: Change to actual backend endpoint
       const endpoint = isRegistering
-        ? "http://130.74.96.8:8181/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Somewhat as long as you are on the olemiss campus wifi. Do I care. NO.
-        : "http://130.74.96.8:8181/api/login?";
+        ? "https://130.74.96.8:8181/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Somewhat as long as you are on the olemiss campus wifi. Do I care. NO.
+        : "https://130.74.96.8:8181/api/login?";
 
       const response = await fetch(endpoint, {
         method: "POST",
