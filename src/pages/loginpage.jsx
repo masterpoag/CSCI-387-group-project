@@ -56,8 +56,8 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
       }
       //TODO: Change to actual backend endpoint
       const endpoint = isRegistering
-        ? "127.0.0.1:8181/api/register?hasCG=false"
-        : "127.0.0.1:8181/api/login?";
+        ? "http://127.0.0.1:8181/api/register?hasCG=false"
+        : "http://127.0.0.1:8181/api/login?";
 
       const response = await fetch(endpoint, {
         method: "POST",
