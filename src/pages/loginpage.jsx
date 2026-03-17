@@ -62,6 +62,7 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
+          "accept": "application/json",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
