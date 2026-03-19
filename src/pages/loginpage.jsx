@@ -1,28 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-const containerStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  marginTop: "100px",
-};
-
-const formStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  width: "250px",
-};
-
-const linkStyle = {
-  marginLeft: "5px",
-  background: "none",
-  border: "none",
-  color: "blue",
-  cursor: "pointer",
-  textDecoration: "underline",
-};
+import "./loginpage.css";
 
 export default function LoginPage({/* Add Vars here for passthrough*/}) {
   const navigate = useNavigate();
@@ -103,62 +81,87 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
   };
 
   return (
-    <div style={containerStyle}>
-      <h2>{isRegistering ? "Create Account" : "Login"}</h2>
+    <div className="loginPage">
+      <div className="loginCard" role="region" aria-label="Authentication">
+        <div className="loginHeader">
+          <div className="loginKicker">{isRegistering ? "Welcome" : "Welcome back"}</div>
+          <h2 className="loginTitle">{isRegistering ? "Create Account" : "Login"}</h2>
+        </div>
 
-      <form onSubmit={handleSubmit} style={formStyle}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
+        <form onSubmit={handleSubmit} className="loginForm">
+          <label className="field">
+            <span className="fieldLabel">Email</span>
+            <input
+              className="textInput"
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              autoComplete="email"
+            />
+          </label>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={handleChange}
-          required
-        />
+          <label className="field">
+            <span className="fieldLabel">Password</span>
+            <input
+              className="textInput"
+              type="password"
+              name="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              autoComplete={isRegistering ? "new-password" : "current-password"}
+            />
+          </label>
 
-        {isRegistering && (
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm Password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-        )}
+          {isRegistering && (
+            <label className="field">
+              <span className="fieldLabel">Confirm password</span>
+              <input
+                className="textInput"
+                type="password"
+                name="confirmPassword"
+                placeholder="••••••••"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                autoComplete="new-password"
+              />
+            </label>
+          )}
 
-        <button type="submit" disabled={loading}>
-          {loading
-            ? "Please wait..."
-            : isRegistering
-            ? "Create Account"
-            : "Login"}
-        </button>
-      </form>
+          <button className="primaryButton" type="submit" disabled={loading}>
+            <span className="primaryButtonInner">
+              {loading
+                ? "Please wait..."
+                : isRegistering
+                ? "Create Account"
+                : "Login"}
+            </span>
+          </button>
+        </form>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+        {error && <p className="loginError">{error}</p>}
 
-      <p style={{ marginTop: "15px" }}>
-        {isRegistering ? "Already have an account?" : "Don't have an account?"}
-        <button
-          onClick={() => {
-            setIsRegistering(!isRegistering);
-            setError("");
-          }}
-          style={linkStyle}
-        >
-          {isRegistering ? "Login" : "Create one"}
-        </button>
-      </p>
+        <p className="loginFooter">
+          <span className="loginFooterText">
+            {isRegistering ? "Already have an account?" : "Don't have an account?"}
+          </span>
+          <button
+            className="linkButton"
+            type="button"
+            onClick={() => {
+              setIsRegistering(!isRegistering);
+              setError("");
+            }}
+          >
+            {isRegistering ? "Login" : "Create one"}
+          </button>
+        </p>
+      </div>
     </div>
   );
 }
