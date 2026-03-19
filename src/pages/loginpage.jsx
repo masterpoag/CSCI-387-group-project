@@ -1,4 +1,3 @@
-import { UNSAFE_convertRouteMatchToUiMatch } from "@remix-run/router";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -55,9 +54,8 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
       if (isRegistering && formData.password !== formData.confirmPassword) {
         throw new Error("Passwords do not match");
       }
-      //TODO: Change to actual backend endpoint
       const endpoint = isRegistering
-        ? "https://gp-test.vroey.us/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Somewhat as long as you are on the olemiss campus wifi. Do I care. NO.
+        ? "https://gp-test.vroey.us/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Yes but requires this to be hosted on 2 different servers. Do I care. NO.
         : "https://gp-test.vroey.us/api/login?uname="+formData.email+"&upass="+formData.password; //TODO THIS NEEDS TO BE FIXED WITH ENCRIPTION
 
       const response = isRegistering ? await fetch(endpoint, {      // This runs if you are Registering
@@ -95,7 +93,7 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
         localStorage.setItem("token", data.token);
       }
 
-      navigate("/");
+      navigate("/food");
 
     } catch (err) {
       setError(err.message);

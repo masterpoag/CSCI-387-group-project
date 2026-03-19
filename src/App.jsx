@@ -2,6 +2,7 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route, NavLink } from "react-router-dom";
 import HomePage from "./pages/index.jsx";
 import LoginPage from "./pages/loginpage.jsx"
+import FoodPage from "./pages/foodpage.jsx"
 
 
 function App() {
@@ -28,6 +29,7 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/food" element={<FoodPage darkMode={true}/>} />
     </Routes>
   </Router>
 
