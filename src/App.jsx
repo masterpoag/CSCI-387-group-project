@@ -1,4 +1,4 @@
-oimport './App.css'
+import './App.css'
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import HomePage from "./pages/index.jsx";
 import LoginPage from "./pages/loginpage.jsx"
