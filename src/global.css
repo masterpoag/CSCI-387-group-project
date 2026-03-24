@@ -1054,6 +1054,14 @@ button:focus-visible {
   color: rgba(15, 23, 42, 0.45);
 }
 
+:root[data-theme="light"] .foodSearchInput {
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+}
+
+:root[data-theme="light"] .foodSearchInput:focus {
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
 :root[data-theme="light"] .recipeCardDivider {
   border-top-color: rgba(15, 23, 42, 0.12);
 }
