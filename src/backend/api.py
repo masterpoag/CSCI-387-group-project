@@ -73,6 +73,13 @@ async def calc_UID(hash: float) -> int:
 
     return result
 
+async def safe(msg: str) -> bool:
+    banned_chars = [";", "(", ")", "\\", "\"", "\'", "&", "|", ",", "!", "$"]
+    for c in banned_chars:
+        if c in msg: return False
+        
+    return True
+
 # API Endpoints
 @app.post("/api/register")
 async def register(hasCG: bool, nu: NewUser):
@@ -90,7 +97,14 @@ async def register(hasCG: bool, nu: NewUser):
             await log(f"len(nu.umane) ({len(nu.uname)}) is greater than 30!")
 
             return res.get_data()
-    
+   
+        isSafe = await safe(nu.uname)
+        if not isSafe:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "uname contains banned characters"
+            await log(f"{nu.uname} contains banned characters")
+            
+            return res.get_data()
         cursor.execute("SELECT uname FROM User WHERE uname = %s", [nu.uname])
         await log(f"SELECT uname FROM User WHERE uname = {nu.uname}") 
         
@@ -149,6 +163,14 @@ async def login(uname: str, upass: str):
             if so, return hashed UID 
         '''
         
+        isSafe = await safe(uname)
+        if not isSafe:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "uname contains banned characters"
+            await log(f"{uname} contains banned characters")
+            
+            return res.get_data()
+
         cursor.execute("SELECT uname FROM User WHERE uname = %s", [uname])
         await log(f"SELECT uname FROM User WHERE uname = {uname}")
 
