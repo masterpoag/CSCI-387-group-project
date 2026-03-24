@@ -42,63 +42,42 @@ export default function RecipePage({ darkMode }) {
   );
 
 
-  const searchContainerStyle = {
-    maxWidth: "800px",
-    margin: "0 auto 2rem auto",
-    textAlign: "center",
-  };
-
-  const inputStyle = {
-    width: "100%",
-    padding: "12px 20px",
-    fontSize: "1rem",
-    borderRadius: "25px",
-    border: darkMode ? "1px solid #444" : "1px solid #ccc",
-    backgroundColor: darkMode ? "#2c2c2c" : "#fff",
-    color: darkMode ? "#fff" : "#000",
-    outline: "none",
-    boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-  };
-
-  const gridStyle = {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: "1.5rem",
-    maxWidth: "1200px",
-    margin: "0 auto",
-  };
-
   return (
-    <div>
-      <div style={searchContainerStyle}>
-        <h1 style={{ marginBottom: "1.5rem" }}>Recipe Explorer</h1>
-        <input
-          type="text"
-          placeholder="Search by recipe name or description..."
-          style={inputStyle}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <p style={{ marginTop: "10px", opacity: 0.7 }}>
-          Showing {filteredRecipes.length} recipes
-        </p>
-      </div>
+    <div className="foodPage">
+      <div className="foodPageContent">
+        <div className="foodSearchPanel">
+          <p className="foodKicker">Find your next meal</p>
+          <h1 className="foodTitle">Recipe Explorer</h1>
+          <p className="foodSubtitle">Search by recipe name or description.</p>
+          <input
+            className="foodSearchInput"
+            type="text"
+            placeholder="Search by recipe name or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <p className="foodResultsMeta">
+            Showing {filteredRecipes.length} recipes
+          </p>
+        </div>
 
-      <div style={gridStyle}>
-        {filteredRecipes.length > 0 ? (
-          filteredRecipes.map((recipe) => (
-            <RecipeCard 
-              key={recipe.rid} 
-              recipe={recipe} 
-              ingredients={recipe.ingredients} 
-              darkMode={darkMode} 
-            />
-          ))
-        ) : (
-          <div style={{ textAlign: "center", gridColumn: "1 / -1", marginTop: "2rem" }}>
-            <h3>No recipes found matching "{searchTerm}"</h3>
-          </div>
-        )}
+        <div className="foodRecipeGrid">
+          {filteredRecipes.length > 0 ? (
+            filteredRecipes.map((recipe) => (
+              <RecipeCard
+                key={recipe.rid}
+                recipe={recipe}
+                ingredients={recipe.ingredients}
+                darkMode={darkMode}
+              />
+            ))
+          ) : (
+            <div className="foodEmptyState">
+              <h3 className="foodEmptyTitle">No recipes found</h3>
+              <p className="foodEmptyText">Nothing matched "{searchTerm}". Try a different keyword.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

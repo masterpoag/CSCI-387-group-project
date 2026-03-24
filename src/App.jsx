@@ -5,13 +5,6 @@ import FoodPage from "./pages/foodpage.jsx";
 
 
 function App() {
-  {/* Define styles*/}
-  const navStyle = {
-    display: "flex",
-    gap: "20px",
-    padding: "10px",
-  };
-
   function Layout() {
     const location = useLocation();
     const hideNav = location.pathname === "/login";
@@ -19,11 +12,33 @@ function App() {
     return (
       <>
         {!hideNav && (
-          <nav style={navStyle}>
-            {/* Navigation links */}
-            <NavLink to="/">HomePage</NavLink>
-            <NavLink to="/login">LoginPage</NavLink>
-            <NavLink to="/food">FoodPage</NavLink>
+          <nav className="topNav" aria-label="Primary navigation">
+            <div className="topNavInner">
+              <NavLink className="topNavBrand" to="/">
+                NutriFlow
+              </NavLink>
+              <div className="topNavLinks">
+                <NavLink
+                  to="/"
+                  className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                  end
+                >
+                  Home
+                </NavLink>
+                <NavLink
+                  to="/food"
+                  className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                >
+                  Recipes
+                </NavLink>
+                <NavLink
+                  to="/login"
+                  className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                >
+                  Login
+                </NavLink>
+              </div>
+            </div>
           </nav>
         )}
         <Routes>
