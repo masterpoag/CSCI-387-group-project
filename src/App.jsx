@@ -1,7 +1,7 @@
-import './App.css'
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import HomePage from "./pages/index.jsx";
 import LoginPage from "./pages/loginpage.jsx"
+import FoodPage from "./pages/foodpage.jsx";
 
 
 function App() {
@@ -23,11 +23,13 @@ function App() {
             {/* Navigation links */}
             <NavLink to="/">HomePage</NavLink>
             <NavLink to="/login">LoginPage</NavLink>
+            <NavLink to="/food">FoodPage</NavLink>
           </nav>
         )}
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/food" element={<FoodPage />} />
         </Routes>
       </>
     );

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./loginpage.css";
 
 export default function LoginPage({/* Add Vars here for passthrough*/}) {
   const navigate = useNavigate();
