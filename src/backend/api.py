@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import db
 import time
 import math
+from message import *
 import hashlib
 import mysql.connector
 
@@ -26,14 +27,6 @@ app.add_middleware(
 
 connection, cursor = db.database_connect()
 
-class NewUser(BaseModel):
-    uname: str
-    upass: str
-    weight: float
-    atype: int
-    isMetric: bool
-    calGoal: int | None = None
-
 class Result():
     def __init__(self) -> None:
         self.data = {"Result": "Success", "Message": "", "Data": None}
@@ -41,6 +34,12 @@ class Result():
         return self.data
 
 # Helper functions
+async def add_food(food: Food):
+    stmt = "INSERT INTO Food VALUES (%s, %s)"
+    cursor.execute(stmt, [food.cal, food.fname])
+    
+    connection.commit()
+     
 async def log(msg: str) -> None:
     # It's rather simple now, but the idea is that I could expand it later if need be
     print("[API.PY] " + msg)
@@ -81,6 +80,82 @@ async def safe(msg: str) -> bool:
     return True
 
 # API Endpoints
+@app.post("/api/create-recipe")
+async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Food]):
+    '''
+    Notes:
+    1. Check if the user is logged in (does hashed uid match corresponding uname?)
+    2. Add new foods (if any) 
+    3. Get each food fid for Bridge Entity
+    4. Add recipe
+    5. Add quantities to B.E.
+    '''
+    res = Result()
+    
+    # Check if user is logged in
+    uid = await calc_UID(huid)
+    if uid == -1:
+        res.data["Result"] = "Failed"
+        res.data["Message"] = "huid corrupted"
+        await log("Passed hashed uid returned -1")
+        
+        return res.get_data()
+    
+    stmt = "SELECT uname, uid FROM User WHERE uid = %s"
+    cursor.execute(stmt, [uid])
+
+    result = cursor.fetchall()
+    
+    if len(result) == 0:
+        res.data["Result"] = "Failed"
+        res.data["Message"] = "Unknown user"
+        await log("No matching UID in User table")
+        
+        return res.get_data()
+    
+    if result["uname"] != uname: #type: ignore
+        res.data["Result"] = "Failed"
+        res.data["Message"] = "Unknown user, check logs"
+        await log("WARNING: UID does not match passed username. Something fishy might be going on!")
+        
+        return res.get_data()
+    
+    # User is logged in correctly, maybe I should surround this logic in it's own file...
+    
+    # Gather each fid for each food
+    fids = [] 
+    for f in foods:
+        if f.isNew:
+            await add_food(f)
+        
+        stmt = "SELECT fid FROM Food WHERE name = %s"
+        cursor.execute(stmt, [f.fname])
+        
+        result = cursor.fetchall()
+        
+        # It shouldn't be possible for result to be empty, so I won't bother checking for it 
+        fids.append((result["fid"], f.qty)) #type: ignore
+    
+    # Add Recipe
+    stmt = "INSERT INTO Recipe VALUES (%s, %s, %s, %s, %s)"
+    cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, nr.isPublic, uid])
+    
+    connection.commit()
+    
+    stmt = "SELECT rid FROM Recipe WHERE User_uid = %s AND name = %s" 
+    cursor.execute(stmt, [uid, nr.rname])
+    
+    result = cursor.fetchall()
+    rid = result["rid"] #type: ignore
+     
+    # Add to Quantity B.E.
+    stmt = "INSERT INTO Quantity VALUES (%s, %s, %s)"    
+
+    for t in fids:
+        for fid, qty in t: 
+            cursor.execute(stmt, [fid, rid, qty])
+        
+    
 @app.post("/api/register")
 async def register(hasCG: bool, nu: NewUser):
     # A few things:
@@ -152,6 +227,37 @@ async def register(hasCG: bool, nu: NewUser):
 
         return res.get_data()
 
+@app.get("/api/get-food")
+async def get_food():
+    res = Result()
+    
+    try:
+        stmt = "SELECT name FROM Food"
+        cursor.execute(stmt)
+        await log(stmt)
+        
+        result = cursor.fetchall()
+        
+        if len(result) == 0:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Food table empty"
+            await log("Food table empty")
+            
+            return res.get_data()
+
+        res.data["Result"] = "Success"
+        res.data["Message"] = "Returning all food names"
+        res.data["Data"] = result
+        
+        return res.get_data()
+
+    except mysql.connector.Error as err:
+        res.data["Result"] = "Failed"
+        res.data["Message"] = "Database threw an error, check API logs"
+        await log(f"Database error:\n\t{err}")
+        
+        return res.get_data() 
+        
 @app.get("/api/login")
 async def login(uname: str, upass: str):
     res = Result()

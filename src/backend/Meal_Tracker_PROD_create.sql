@@ -17,12 +17,12 @@ CREATE TABLE Food (
     CONSTRAINT Food_pk PRIMARY KEY (fid)
 ) COMMENT 'Assumes a default portion size';
 
--- Table: Quanity
-CREATE TABLE Quanity (
+-- Table: Quantity
+CREATE TABLE Quantity (
     Food_fid int  NOT NULL,
     Recipe_rid int  NOT NULL,
     qty decimal(10,10)  NOT NULL,
-    CONSTRAINT Quanity_pk PRIMARY KEY (Food_fid,Recipe_rid)
+    CONSTRAINT Quantity_pk PRIMARY KEY (Food_fid,Recipe_rid)
 ) COMMENT 'Recipe Food Bridge Entity';
 
 -- Table: Recipe
@@ -32,7 +32,6 @@ CREATE TABLE Recipe (
     `desc` varchar(200)  NULL,
     instruct text  NULL,
     isPublic bool  NOT NULL,
-    pid int  NOT NULL COMMENT 'FK',
     User_uid int  NOT NULL,
     CONSTRAINT Recipe_pk PRIMARY KEY (rid)
 );
@@ -73,12 +72,12 @@ ALTER TABLE Recipe ADD CONSTRAINT Recipe_User FOREIGN KEY Recipe_User (User_uid)
 ALTER TABLE Workout ADD CONSTRAINT Workout_User FOREIGN KEY Workout_User (User_uid)
     REFERENCES User (uid);
 
--- Reference: portion_Recipe (table: Quanity)
-ALTER TABLE Quanity ADD CONSTRAINT portion_Recipe FOREIGN KEY portion_Recipe (Recipe_rid)
+-- Reference: portion_Recipe (table: Quantity)
+ALTER TABLE Quantity ADD CONSTRAINT portion_Recipe FOREIGN KEY portion_Recipe (Recipe_rid)
     REFERENCES Recipe (rid);
 
--- Reference: rec_food_Food (table: Quanity)
-ALTER TABLE Quanity ADD CONSTRAINT rec_food_Food FOREIGN KEY rec_food_Food (Food_fid)
+-- Reference: rec_food_Food (table: Quantity)
+ALTER TABLE Quantity ADD CONSTRAINT rec_food_Food FOREIGN KEY rec_food_Food (Food_fid)
     REFERENCES Food (fid);
 
 -- End of file.
