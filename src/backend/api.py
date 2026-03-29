@@ -35,8 +35,8 @@ class Result():
 
 # Helper functions
 async def add_food(food: Food):
-    stmt = "INSERT INTO Food VALUES (%s, %s)"
-    cursor.execute(stmt, [food.cal, food.fname])
+    stmt = "INSERT INTO Food (cal, name, base_measure) VALUES (%s, %s, %s)"
+    cursor.execute(stmt, [food.cal, food.fname.lower(), food.base_measurement])
     
     connection.commit()
      
@@ -82,8 +82,23 @@ async def safe(msg: str) -> bool:
 # API Endpoints
 @app.post("/api/create-recipe")
 async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Food]):
-    '''
+    """
     Notes:
+    Sign in system may be abstracted into it's own function soon. That'll mean a new object like NewRecipe or Food.
+    
+    If isNew is true, 'cal' and 'base_measurement' are required.
+    
+    Base measurement indexes:
+    0 --> Pound
+    1 --> Ounce
+    2 --> Cup
+    3 --> Teaspoon
+    
+    When you use 'qty', the backend expects it to be in unites relative to the food's base measurement. It is up to the front end to do the conversion.
+    """
+     
+    '''
+    Dev Notes:
     1. Check if the user is logged in (does hashed uid match corresponding uname?)
     2. Add new foods (if any) 
     3. Get each food fid for Bridge Entity
@@ -91,70 +106,89 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
     5. Add quantities to B.E.
     '''
     res = Result()
-    
-    # Check if user is logged in
-    uid = await calc_UID(huid)
-    if uid == -1:
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "huid corrupted"
-        await log("Passed hashed uid returned -1")
-        
-        return res.get_data()
-    
-    stmt = "SELECT uname, uid FROM User WHERE uid = %s"
-    cursor.execute(stmt, [uid])
+    try: 
+        # Check if user is logged in
+        uid = await calc_UID(huid)
+        if uid == -1:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "huid corrupted"
+            await log("Passed hashed uid returned -1")
 
-    result = cursor.fetchall()
+            return res.get_data()
     
-    if len(result) == 0:
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "Unknown user"
-        await log("No matching UID in User table")
-        
-        return res.get_data()
-    
-    if result["uname"] != uname: #type: ignore
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "Unknown user, check logs"
-        await log("WARNING: UID does not match passed username. Something fishy might be going on!")
-        
-        return res.get_data()
-    
-    # User is logged in correctly, maybe I should surround this logic in it's own file...
-    
-    # Gather each fid for each food
-    fids = [] 
-    for f in foods:
-        if f.isNew:
-            await add_food(f)
-        
-        stmt = "SELECT fid FROM Food WHERE name = %s"
-        cursor.execute(stmt, [f.fname])
-        
+        stmt = "SELECT uname, uid FROM User WHERE uid = %s"
+        cursor.execute(stmt, [uid])
+
         result = cursor.fetchall()
-        
-        # It shouldn't be possible for result to be empty, so I won't bother checking for it 
-        fids.append((result["fid"], f.qty)) #type: ignore
     
-    # Add Recipe
-    stmt = "INSERT INTO Recipe VALUES (%s, %s, %s, %s, %s)"
-    cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, nr.isPublic, uid])
-    
-    connection.commit()
-    
-    stmt = "SELECT rid FROM Recipe WHERE User_uid = %s AND name = %s" 
-    cursor.execute(stmt, [uid, nr.rname])
-    
-    result = cursor.fetchall()
-    rid = result["rid"] #type: ignore
-     
-    # Add to Quantity B.E.
-    stmt = "INSERT INTO Quantity VALUES (%s, %s, %s)"    
+        if len(result) == 0:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Unknown user"
+            await log("No matching UID in User table")
 
-    for t in fids:
-        for fid, qty in t: 
-            cursor.execute(stmt, [fid, rid, qty])
-        
+            return res.get_data()
+   
+        if result[0]["uname"] != uname: #type: ignore
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Unknown user, check logs"
+            await log("WARNING: UID does not match passed username. Something fishy might be going on!")
+
+            return res.get_data()
+    
+        # User is logged in correctly, maybe I should surround this logic in it's own file...
+
+        # Check if recipe is actually new
+        stmt = "SELECT name FROM Recipe WHERE User_uid = %s AND name = %s"
+        cursor.execute(stmt, [uid, nr.rname]) 
+    
+        result = cursor.fetchall()
+    
+        if len(result) != 0:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Recipe with that name already exists for that user!"
+            await log("Recipe with that name already exists for that user!")
+
+            return res.get_data()
+    
+        # Gather each fid for each food
+        fids = [] 
+        for f in foods:
+            if f.isNew:
+                await add_food(f)
+
+            stmt = "SELECT fid FROM Food WHERE name = %s"
+            cursor.execute(stmt, [f.fname])
+
+            result = cursor.fetchall()
+
+            # It shouldn't be possible for result to be empty, so I won't bother checking for it 
+            fids.append([result[0]["fid"], f.qty]) #type: ignore
+    
+        # Add Recipe
+
+        stmt = "INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES (%s, %s, %s, %s, %s)"
+        await log(f"INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES ({nr.rname}, {nr.desc}, {nr.instruct}, {nr.isPublic}, {uid})") 
+        cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, nr.isPublic, uid])
+        connection.commit()
+    
+        stmt = "SELECT rid FROM Recipe WHERE User_uid = %s AND name = %s" 
+        cursor.execute(stmt, [uid, nr.rname])
+    
+        result = cursor.fetchall()
+        rid = int(result[0]["rid"]) #type: ignore
+
+        # Add to Quantity B.E.
+        stmt = "INSERT INTO Quantity (Food_fid, Recipe_rid, qty) VALUES (%s, %s, %s)"    
+
+        for t in fids:
+            for fid, qty in t: 
+                cursor.execute(stmt, [fid, rid, qty])
+    except mysql.connector.Error as err:         
+        res.data["Result"] = "Failed"
+        res.data["Message"] = "Database threw an error, check API logs"
+        await log(f"Database threw an error!\n\t{err}") 
+
+        return res.get_data()
     
 @app.post("/api/register")
 async def register(hasCG: bool, nu: NewUser):

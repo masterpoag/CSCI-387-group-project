@@ -13,6 +13,7 @@ CREATE TABLE Admin (
 CREATE TABLE Food (
     fid int  NOT NULL AUTO_INCREMENT,
     cal int  NOT NULL,
+    base_measure int,
     name varchar(30)  NOT NULL,
     CONSTRAINT Food_pk PRIMARY KEY (fid)
 ) COMMENT 'Assumes a default portion size';

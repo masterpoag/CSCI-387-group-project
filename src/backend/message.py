@@ -19,4 +19,4 @@ class Food(BaseModel):
     qty: float
     isNew: bool
     cal: int | None = None
-    
+    base_measurement: int | None = None 
