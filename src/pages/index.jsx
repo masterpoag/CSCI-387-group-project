@@ -31,7 +31,7 @@ export default function HomePage({/* Add Vars here for passthrough*/}) {
           <h1 className="homeTitle">Plan meals and workouts like the pros.</h1>
           <p className="homeSubtitle">
           NutriFlow helps you be smarter and healthier when you eat and workout.
-          Discover new recipes/workouts, organize your personal favorites, and build sustainable habits—all in a focused workspace designed to keep you on track.
+          Discover new recipes/workouts, organize your personal favorites, and build sustainable habits designed to keep you on track.
           With guidance from nutrition experts and fitness trainers, NutriFlow helps you turn your everyday boring tasks into easy to understand and learn goals.
           </p>
           <div className="homeHeroCta">
