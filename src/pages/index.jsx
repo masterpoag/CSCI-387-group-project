@@ -28,17 +28,18 @@ export default function HomePage({/* Add Vars here for passthrough*/}) {
       <div className="homePageShell">
         <section className="homeHero">
           <p className="homeKicker">Built for better food decisions</p>
-          <h1 className="homeTitle">Plan smarter meals with the speed of modern AI products.</h1>
+          <h1 className="homeTitle">Plan meals and workouts like the pros.</h1>
           <p className="homeSubtitle">
-            NutriFlow brings recipe discovery, personal collections, and healthy structure into one
-            focused workspace.
+          NutriFlow helps you be smarter and healthier when you eat and workout.
+          Discover new recipes/workouts, organize your personal favorites, and build sustainable habits—all in a focused workspace designed to keep you on track.
+          With guidance from nutrition experts and fitness trainers, NutriFlow helps you turn your everyday boring tasks into easy to understand and learn goals.
           </p>
           <div className="homeHeroCta">
             <Link className="homePrimaryCta" to="/login">Get Started</Link>
             <Link className="homeSecondaryCta" to="/food">Browse Recipes</Link>
           </div>
           <div className="homeProofRow" aria-label="Key highlights">
-            <span className="homeProofPill">Fast setup</span>
+            <span className="homeProofPill">Easy to Use</span>
             <span className="homeProofPill">Modern UI</span>
             <span className="homeProofPill">Goal-driven flow</span>
           </div>
