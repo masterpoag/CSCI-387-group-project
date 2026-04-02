@@ -67,7 +67,7 @@ async def calc_UID(hash: float) -> int:
     try:
         result =  math.floor(((hash - (math.e ** 4.5)) ** 2) / math.pi)
     except:
-        await log("UID Cacluate failed!") 
+        await log("UID Calculate failed!") 
         return -1
 
     return result
@@ -106,7 +106,7 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
     5. Add quantities to B.E.
     '''
     res = Result()
-    try: 
+    try:
         # Check if user is logged in
         uid = await calc_UID(huid)
         if uid == -1:
@@ -136,6 +136,8 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
             return res.get_data()
     
         # User is logged in correctly, maybe I should surround this logic in it's own file...
+        # Start transaction
+        connection.start_transaction()
 
         # Check if recipe is actually new
         stmt = "SELECT name FROM Recipe WHERE User_uid = %s AND name = %s"
@@ -147,6 +149,7 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
             res.data["Result"] = "Failed"
             res.data["Message"] = "Recipe with that name already exists for that user!"
             await log("Recipe with that name already exists for that user!")
+            connection.rollback()
 
             return res.get_data()
     
@@ -165,11 +168,9 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
             fids.append([result[0]["fid"], f.qty]) #type: ignore
     
         # Add Recipe
-
         stmt = "INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES (%s, %s, %s, %s, %s)"
         await log(f"INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES ({nr.rname}, {nr.desc}, {nr.instruct}, {nr.isPublic}, {uid})") 
         cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, nr.isPublic, uid])
-        connection.commit()
     
         stmt = "SELECT rid FROM Recipe WHERE User_uid = %s AND name = %s" 
         cursor.execute(stmt, [uid, nr.rname])
@@ -180,13 +181,17 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
         # Add to Quantity B.E.
         stmt = "INSERT INTO Quantity (Food_fid, Recipe_rid, qty) VALUES (%s, %s, %s)"    
 
-        for t in fids:
-            for fid, qty in t: 
-                cursor.execute(stmt, [fid, rid, qty])
+        for fid, qty in fids:
+            cursor.execute(stmt, [fid, rid, qty])
+
+        #End Transaction 
+        connection.commit()
     except mysql.connector.Error as err:         
         res.data["Result"] = "Failed"
         res.data["Message"] = "Database threw an error, check API logs"
         await log(f"Database threw an error!\n\t{err}") 
+        #Rollback
+        connection.rollback()
 
         return res.get_data()
     
