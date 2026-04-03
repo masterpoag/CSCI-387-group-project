@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 class NewUser(BaseModel):
     uname: str
@@ -19,3 +19,10 @@ class Food(BaseModel):
     isNew: bool
     cal: int | None = None
     base_measurement: int | None = None 
+    
+    @model_validator(mode="after")
+    def check(self):
+        if self.isNew:
+            if self.cal is None or self.base_measurement is None:
+                raise ValueError("'cal' and 'base_measurement' are required when 'isNew' is true")
+        return self
