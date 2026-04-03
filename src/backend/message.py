@@ -5,7 +5,6 @@ class NewUser(BaseModel):
     upass: str
     weight: float
     atype: int
-    isMetric: bool
     calGoal: int | None = None
 
 class NewRecipe(BaseModel):

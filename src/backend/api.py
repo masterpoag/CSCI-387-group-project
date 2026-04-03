@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from mysql.connector.abstracts import *
 import db
 import time
 import math
@@ -13,7 +13,9 @@ app = FastAPI()
 origins = [
     "http://0.0.0.0:8000",
     "http://0.0.0.0",
+    "https://localhost:8000",
     "https://turing.cs.olemiss.edu",
+    "https://gp.vroey.us",
     "https://gp-test.vroey.us",
     ]
 
@@ -25,8 +27,6 @@ app.add_middleware(
         allow_headers=["*"],
         )
 
-connection, cursor = db.database_connect()
-
 class Result():
     def __init__(self) -> None:
         self.data = {"Result": "Success", "Message": "", "Data": None}
@@ -34,11 +34,10 @@ class Result():
         return self.data
 
 # Helper functions
-async def add_food(food: Food):
+async def add_food(food: Food, cursor: MySQLCursorAbstract):
     stmt = "INSERT INTO Food (cal, name, base_measure) VALUES (%s, %s, %s)"
     cursor.execute(stmt, [food.cal, food.fname.lower(), food.base_measurement])
     
-    connection.commit()
      
 async def log(msg: str) -> None:
     # It's rather simple now, but the idea is that I could expand it later if need be
@@ -106,94 +105,102 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
     5. Add quantities to B.E.
     '''
     res = Result()
-    try:
-        # Check if user is logged in
-        uid = await calc_UID(huid)
-        if uid == -1:
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "huid corrupted"
-            await log("Passed hashed uid returned -1")
+    with db.DBConnect() as (connection, cursor):
+        try:
+            # Check if user is logged in
+            uid = await calc_UID(huid)
+            if uid == -1:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "huid corrupted"
+                await log("Passed hashed uid returned -1")
 
-            return res.get_data()
+                return res.get_data()
     
-        stmt = "SELECT uname, uid FROM User WHERE uid = %s"
-        cursor.execute(stmt, [uid])
+            stmt = "SELECT uname, uid FROM User WHERE uid = %s"
+            cursor.execute(stmt, [uid])
 
-        result = cursor.fetchall()
+            result = cursor.fetchall()
     
-        if len(result) == 0:
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "Unknown user"
-            await log("No matching UID in User table")
+            if len(result) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Unknown user"
+                await log("No matching UID in User table")
 
-            return res.get_data()
+                return res.get_data()
    
-        if result[0]["uname"] != uname: #type: ignore
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "Unknown user, check logs"
-            await log("WARNING: UID does not match passed username. Something fishy might be going on!")
+            if result[0]["uname"] != uname: #type: ignore
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Unknown user, check logs"
+                await log("WARNING: UID does not match passed username. Something fishy might be going on!")
+
+                return res.get_data()
+
+            connection.commit() 
+            # User is logged in correctly, maybe I should surround this logic in it's own file...
+            # Start transaction
+            connection.start_transaction()
+
+            # Check if recipe is actually new
+            stmt = "SELECT name FROM Recipe WHERE User_uid = %s AND name = %s"
+            cursor.execute(stmt, [uid, nr.rname]) 
+    
+            result = cursor.fetchall()
+    
+            if len(result) != 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Recipe with that name already exists for that user!"
+                await log("Recipe with that name already exists for that user!")
+                connection.rollback()
+
+                return res.get_data()
+    
+            # Gather each fid for each food
+            fids = [] 
+            for f in foods:
+                if f.isNew:
+                    await add_food(f, cursor)
+
+                stmt = "SELECT fid FROM Food WHERE name = %s"
+                cursor.execute(stmt, [f.fname])
+
+                result = cursor.fetchall()
+
+                # It shouldn't be possible for result to be empty, so I won't bother checking for it 
+                fids.append([result[0]["fid"], f.qty]) #type: ignore
+    
+            # Add Recipe
+            stmt = "INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES (%s, %s, %s, %s, %s)"
+            await log(f"INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES ({nr.rname}, {nr.desc}, {nr.instruct}, {nr.isPublic}, {uid})") 
+            cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, nr.isPublic, uid])
+    
+            stmt = "SELECT rid FROM Recipe WHERE User_uid = %s AND name = %s" 
+            cursor.execute(stmt, [uid, nr.rname])
+    
+            result = cursor.fetchall()
+            rid = int(result[0]["rid"]) #type: ignore
+
+            # Add to Quantity B.E.
+            stmt = "INSERT INTO Quantity (Food_fid, Recipe_rid, qty) VALUES (%s, %s, %s)"    
+
+            for fid, qty in fids:
+                cursor.execute(stmt, [fid, rid, qty])
+
+            #End Transaction 
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Recipe {nr.rname} successfully added."
 
             return res.get_data()
     
-        # User is logged in correctly, maybe I should surround this logic in it's own file...
-        # Start transaction
-        connection.start_transaction()
-
-        # Check if recipe is actually new
-        stmt = "SELECT name FROM Recipe WHERE User_uid = %s AND name = %s"
-        cursor.execute(stmt, [uid, nr.rname]) 
-    
-        result = cursor.fetchall()
-    
-        if len(result) != 0:
+        except mysql.connector.Error as err:         
             res.data["Result"] = "Failed"
-            res.data["Message"] = "Recipe with that name already exists for that user!"
-            await log("Recipe with that name already exists for that user!")
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}") 
+            #Rollback
             connection.rollback()
 
             return res.get_data()
-    
-        # Gather each fid for each food
-        fids = [] 
-        for f in foods:
-            if f.isNew:
-                await add_food(f)
-
-            stmt = "SELECT fid FROM Food WHERE name = %s"
-            cursor.execute(stmt, [f.fname])
-
-            result = cursor.fetchall()
-
-            # It shouldn't be possible for result to be empty, so I won't bother checking for it 
-            fids.append([result[0]["fid"], f.qty]) #type: ignore
-    
-        # Add Recipe
-        stmt = "INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES (%s, %s, %s, %s, %s)"
-        await log(f"INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES ({nr.rname}, {nr.desc}, {nr.instruct}, {nr.isPublic}, {uid})") 
-        cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, nr.isPublic, uid])
-    
-        stmt = "SELECT rid FROM Recipe WHERE User_uid = %s AND name = %s" 
-        cursor.execute(stmt, [uid, nr.rname])
-    
-        result = cursor.fetchall()
-        rid = int(result[0]["rid"]) #type: ignore
-
-        # Add to Quantity B.E.
-        stmt = "INSERT INTO Quantity (Food_fid, Recipe_rid, qty) VALUES (%s, %s, %s)"    
-
-        for fid, qty in fids:
-            cursor.execute(stmt, [fid, rid, qty])
-
-        #End Transaction 
-        connection.commit()
-    except mysql.connector.Error as err:         
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "Database threw an error, check API logs"
-        await log(f"Database threw an error!\n\t{err}") 
-        #Rollback
-        connection.rollback()
-
-        return res.get_data()
     
 @app.post("/api/register")
 async def register(hasCG: bool, nu: NewUser):
@@ -203,165 +210,164 @@ async def register(hasCG: bool, nu: NewUser):
     # 3. Calculate hash password
     # 4. Store information in db
     res = Result()
-    
-    try:       
-        if len(nu.uname) > 30:
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "uname is greater than 30"
-            await log(f"len(nu.umane) ({len(nu.uname)}) is greater than 30!")
+    with db.DBConnect() as (connection, cursor):
+        try:       
+            if len(nu.uname) > 30:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "uname is greater than 30"
+                await log(f"len(nu.umane) ({len(nu.uname)}) is greater than 30!")
 
-            return res.get_data()
+                return res.get_data()
    
-        isSafe = await safe(nu.uname)
-        if not isSafe:
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "uname contains banned characters"
-            await log(f"{nu.uname} contains banned characters")
-            
-            return res.get_data()
-        cursor.execute("SELECT uname FROM User WHERE uname = %s", [nu.uname])
-        await log(f"SELECT uname FROM User WHERE uname = {nu.uname}") 
-        
-        result = cursor.fetchall()
+            isSafe = await safe(nu.uname)
+            if not isSafe:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "uname contains banned characters"
+                await log(f"{nu.uname} contains banned characters")
 
-        if len(result) != 0:
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "Username already exsists in database"
-            await log(f"{nu.uname} already exsists in database!")
+                return res.get_data()
+            cursor.execute("SELECT uname FROM User WHERE uname = %s", [nu.uname])
+            await log(f"SELECT uname FROM User WHERE uname = {nu.uname}") 
 
-            return res.get_data()
+            result = cursor.fetchall()
 
-        # Set up variables
-        isMetric = 1 if nu.isMetric else 0
-        pswd, create_time = await hash_pass(nu.upass) 
-       
-        stmt = ""
-        if hasCG:
-            stmt = "INSERT INTO User (uname, pass, createTime, wieght, account_type, isMetric, cal_goal) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-            await log(f"INSERT INTO User (uname, pass, createTime, wieght, account_type, isMetric, cal_goal) VALUES ({nu.uname}, {pswd}, {create_time}, {nu.weight}, {nu.atype}, {isMetric}, {nu.calGoal}")
-            cursor.execute(stmt, [nu.uname, pswd, create_time, nu.weight, nu.atype, isMetric, nu.calGoal])
-        else:        
-            stmt = "INSERT INTO User (uname, pass, createTime, wieght, account_type, isMetric) VALUES (%s, %s, %s, %s, %s, %s)"
-            await log(f"INSERT INTO User (uname, pass, createTime, wieght, account_type, isMetric) VALUES ({nu.uname}, {pswd}, {create_time}, {nu.weight}, {nu.atype}, {isMetric})")
-            cursor.execute(stmt, [nu.uname, pswd, create_time, nu.weight, nu.atype, isMetric])
+            if len(result) != 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Username already exsists in database"
+                await log(f"{nu.uname} already exsists in database!")
+
+                return res.get_data()
+
+            # Set up variables
+            pswd, create_time = await hash_pass(nu.upass) 
+
+            stmt = ""
+            if hasCG:
+                stmt = "INSERT INTO User (uname, pass, createTime, wieght, account_type, cal_goal) VALUES (%s, %s, %s, %s,  %s, %s)"
+                await log(f"INSERT INTO User (uname, pass, createTime, wieght, account_type, cal_goal) VALUES ({nu.uname}, {pswd}, {create_time}, {nu.weight}, {nu.atype}, {nu.calGoal}")
+                cursor.execute(stmt, [nu.uname, pswd, create_time, nu.weight, nu.atype, nu.calGoal])
+            else:        
+                stmt = "INSERT INTO User (uname, pass, createTime, wieght, account_type) VALUES (%s, %s, %s, %s, %s)"
+                await log(f"INSERT INTO User (uname, pass, createTime, wieght, account_type) VALUES ({nu.uname}, {pswd}, {create_time}, {nu.weight}, {nu.atype})")
+                cursor.execute(stmt, [nu.uname, pswd, create_time, nu.weight, nu.atype])
   
-        connection.commit()
-        
-        if cursor.warning_count != 0:
-            res.data["Result"] = "Warning"
-            res.data["Message"] = "Database registration warning, check API logs"
-            await log(f"Database warning:\n\t{cursor.warnings}")
+            connection.commit()
+
+            if cursor.warning_count != 0:
+                res.data["Result"] = "Warning"
+                res.data["Message"] = "Database registration warning, check API logs"
+                await log(f"Database warning:\n\t{cursor.warnings}")
+
+                return res.get_data()
+    
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"User {nu.uname} successfully created."
+            await log(f"User {nu.uname} successfully created.") 
 
             return res.get_data()
-    
-        res.data["Result"] = "Success"
-        res.data["Message"] = f"User {nu.uname} successfully created."
-        await log(f"User {nu.uname} successfully created.") 
-         
-        return res.get_data()
-    except mysql.connector.Error as err:
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "Database threw an error, check API logs"
-        await log(f"Database threw an error!\n\t{err}") 
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}") 
 
-        return res.get_data()
+            return res.get_data()
 
 @app.get("/api/get-food")
 async def get_food():
     res = Result()
-    
-    try:
-        stmt = "SELECT name FROM Food"
-        cursor.execute(stmt)
-        await log(stmt)
-        
-        result = cursor.fetchall()
-        
-        if len(result) == 0:
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "Food table empty"
-            await log("Food table empty")
-            
+    with db.DBConnect() as (connection, cursor): 
+        try:
+            stmt = "SELECT name FROM Food"
+            cursor.execute(stmt)
+            await log(stmt)
+
+            result = cursor.fetchall()
+
+            if len(result) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Food table empty"
+                await log("Food table empty")
+
+                return res.get_data()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Returning all food names"
+            res.data["Data"] = result
+
             return res.get_data()
 
-        res.data["Result"] = "Success"
-        res.data["Message"] = "Returning all food names"
-        res.data["Data"] = result
-        
-        return res.get_data()
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database error:\n\t{err}")
 
-    except mysql.connector.Error as err:
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "Database threw an error, check API logs"
-        await log(f"Database error:\n\t{err}")
-        
-        return res.get_data() 
+            return res.get_data() 
         
 @app.get("/api/login")
 async def login(uname: str, upass: str):
     res = Result()
-     
-    try:
-        '''
-        1. Check if user exsists
-        2. Check if password is the same as the hashed password
-            if so, return hashed UID 
-        '''
-        
-        isSafe = await safe(uname)
-        if not isSafe:
+    with db.DBConnect() as (connection, cursor):
+        try:
+            '''
+            1. Check if user exsists
+            2. Check if password is the same as the hashed password
+                if so, return hashed UID 
+            '''
+
+            isSafe = await safe(uname)
+            if not isSafe:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "uname contains banned characters"
+                await log(f"{uname} contains banned characters")
+
+                return res.get_data()
+
+            cursor.execute("SELECT uname FROM User WHERE uname = %s", [uname])
+            await log(f"SELECT uname FROM User WHERE uname = {uname}")
+
+            result = cursor.fetchall()
+
+            if len(result) == 0:
+                res.data["Result"] = "Failed" 
+                res.data["Message"] = "Username does not exsist" 
+                return res.get_data()
+
+            cursor.execute("SELECT pass, createTime, uid FROM User WHERE uname = %s", [uname]) 
+            result = cursor.fetchone()
+
+            if result is None:
+                raise mysql.connector.Error
+
+            stored_pass: str = result["pass"] # type: ignore
+            stored_time: int = result["createTime"] # type: ignore
+            stored_uid: int = result["uid"] # type: ignore 
+
+            checked_pass, _ = await hash_pass(upass, stored_time)
+
+            if stored_pass != checked_pass:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Incorrect password"
+                await log("Incorrect password!")
+
+                return res.get_data()
+
+            # Password is correct, return hased uid
+
+            huid = await hash_UID(stored_uid)
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"{uname} successfully signed in"
+            res.data["Data"] = huid
+            await log(f"{uname} successfully signed in") 
+
+            return res.get_data()
+                
+        except mysql.connector.Error as err:
             res.data["Result"] = "Failed"
-            res.data["Message"] = "uname contains banned characters"
-            await log(f"{uname} contains banned characters")
-            
-            return res.get_data()
-
-        cursor.execute("SELECT uname FROM User WHERE uname = %s", [uname])
-        await log(f"SELECT uname FROM User WHERE uname = {uname}")
-
-        result = cursor.fetchall()
-        
-        if len(result) == 0:
-            res.data["Result"] = "Failed" 
-            res.data["Message"] = "Username does not exsist" 
-            return res.get_data()
-        
-        cursor.execute("SELECT pass, createTime, uid FROM User WHERE uname = %s", [uname]) 
-        result = cursor.fetchone()
-       
-        if result is None:
-            raise mysql.connector.Error
-          
-        stored_pass: str = result["pass"] # type: ignore
-        stored_time: int = result["createTime"] # type: ignore
-        stored_uid: int = result["uid"] # type: ignore 
-        
-        checked_pass, _ = await hash_pass(upass, stored_time)
-       
-        if stored_pass != checked_pass:
-            res.data["Result"] = "Failed"
-            res.data["Message"] = "Incorrect password"
-            await log("Incorrect password!")
+            res.data["Message"] = "Database threw an error, check API logs" 
+            await log(f"Database error:\n\t{err}")
 
             return res.get_data()
-        
-        # Password is correct, return hased uid
-        
-        huid = await hash_UID(stored_uid)
-        
-        res.data["Result"] = "Success"
-        res.data["Message"] = f"{uname} successfully signed in"
-        res.data["Data"] = huid
-        await log(f"{uname} successfully signed in") 
-        
-        return res.get_data()
-            
-    except mysql.connector.Error as err:
-        res.data["Result"] = "Failed"
-        res.data["Message"] = "Database threw an error, check API logs" 
-        await log(f"Database error:\n\t{err}")
-
-        return res.get_data()
 
 @app.get("/hello")
 async def read_root():

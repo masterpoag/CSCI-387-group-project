@@ -5,7 +5,7 @@ import json
 def database_connect():
     db_key = ""
 
-    with open("database.env") as file:
+    with open("/home/group3/CSCI-387-group-project/src/backend/database.env") as file:
         db_key = json.load(file)
 
     connection = mysql.connector.connect(
@@ -17,4 +17,17 @@ def database_connect():
         raise_on_warnings=True
     )
 
-    return (connection, connection.cursor(dictionary=True))
+    return connection
+
+class DBConnect:
+    def __enter__(self):
+        self.connection = database_connect()
+        self.cursor = self.connection.cursor(dictionary=True)
+        
+        return self.connection, self.cursor
+    
+    def __exit__(self, exc_type, exc, tb):
+        self.cursor.close()
+        self.connection.close()
+    
+    

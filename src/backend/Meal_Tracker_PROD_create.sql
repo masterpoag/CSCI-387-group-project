@@ -22,7 +22,7 @@ CREATE TABLE Food (
 CREATE TABLE Quantity (
     Food_fid int  NOT NULL,
     Recipe_rid int  NOT NULL,
-    qty decimal(10,10)  NOT NULL,
+    qty decimal(5,2)  NOT NULL,
     CONSTRAINT Quantity_pk PRIMARY KEY (Food_fid,Recipe_rid)
 ) COMMENT 'Recipe Food Bridge Entity';
 
@@ -45,7 +45,6 @@ CREATE TABLE User (
     createTime bigint  UNSIGNED NOT NULL,
     wieght double(5,2)  NOT NULL,
     account_type int  NOT NULL,
-    isMetric bool  NOT NULL,
     cal_goal int  NULL,
     CONSTRAINT User_pk PRIMARY KEY (uid)
 );
