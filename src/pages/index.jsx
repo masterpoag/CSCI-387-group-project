@@ -37,6 +37,7 @@ export default function HomePage({/* Add Vars here for passthrough*/}) {
           <div className="homeHeroCta">
             <Link className="homePrimaryCta" to="/login">Get Started</Link>
             <Link className="homeSecondaryCta" to="/food">Browse Recipes</Link>
+            <Link className="homeSecondaryCta" to="/workouts">Browse Workouts</Link>
           </div>
           <div className="homeProofRow" aria-label="Key highlights">
             <span className="homeProofPill">Easy to Use</span>

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "re
 import HomePage from "./pages/index.jsx";
 import LoginPage from "./pages/loginpage.jsx"
 import FoodPage from "./pages/foodpage.jsx";
+import WorkoutPage from "./pages/workoutpage.jsx";
 
 
 function App() {
@@ -65,6 +66,12 @@ function App() {
                   Recipes
                 </NavLink>
                 <NavLink
+                  to="/workouts"
+                  className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                >
+                  Workouts
+                </NavLink>
+                <NavLink
                   to="/login"
                   className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
                 >
@@ -79,6 +86,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/food" element={<FoodPage />} />
+          <Route path="/workouts" element={<WorkoutPage />} />
         </Routes>
       </>
     );
