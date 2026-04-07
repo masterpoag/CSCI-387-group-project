@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import RecipeCard from "./cards/RecipeCard"; 
+import WorkoutCard from "./cards/WorkoutCard"; 
 
 
 // <test data>
@@ -7,32 +7,32 @@ import RecipeCard from "./cards/RecipeCard";
 const MOCK_RECIPES = [
   {
     rid: 1,
-    name: "Classic Avocado Toast",
-    desc: "A simple, healthy breakfast staple.",
-    instruct: "1. Toast the bread until golden.\n2. Mash avocado with salt and pepper.\n3. Spread on toast.",
+    name: "Upper Body",
+    desc: "A simple bodyweight workout for chest and arms.",
+    instruct: "1. Start with pushups.\n2. Move to plank holds.\n3. Finish with tricep dips.",
     isPublic: true,
     ingredients: [
-      { name: "Sourdough", qty: 1.0, cal: 120 },
-      { name: "Avocado", qty: 0.5, cal: 160 }
+      { name: "Pushups", qty: 15, cal: 50 },
+      { name: "Plank Hold (seconds)", qty: 30, cal: 20 }
     ]
   },
   {
     rid: 2,
-    name: "Protein Power Bowl",
-    desc: "High protein lunch for active days.",
-    instruct: "1. Steam the quinoa.\n2. Grill chicken breast.\n3. Combine in a bowl with dressing.",
+    name: "Full Body Strength",
+    desc: "High intensity workout for active days.",
+    instruct: "1. Perform squats.\n2. Do jumping jacks.\n3. Finish with lunges.",
     isPublic: false,
     ingredients: [
-      { name: "Chicken Breast", qty: 1.0, cal: 280 },
-      { name: "Quinoa", qty: 0.75, cal: 180 },
-      { name: "Spinach", qty: 2.0, cal: 14 }
+      { name: "Squats", qty: 20, cal: 80 },
+      { name: "Jumping Jacks", qty: 30, cal: 100 },
+      { name: "Lunges", qty: 20, cal: 90 }
     ]
   }
 ];
 
 // </test data>
 
-export default function RecipePage({ darkMode }) {
+export default function WorkoutPage({ darkMode }) {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Filter based on name or description
@@ -46,25 +46,25 @@ export default function RecipePage({ darkMode }) {
     <div className="foodPage">
       <div className="foodPageContent">
         <div className="foodSearchPanel">
-          <p className="foodKicker">Find your next meal</p>
-          <h1 className="foodTitle">Recipe Explorer</h1>
-          <p className="foodSubtitle">Search by recipe name or description.</p>
+          <p className="foodKicker">Find your next Workout</p>
+          <h1 className="foodTitle">Workout Explorer</h1>
+          <p className="foodSubtitle">Search by workout name or description.</p>
           <input
             className="foodSearchInput"
             type="text"
-            placeholder="Search by recipe name or description..."
+            placeholder="Search by workout name or description..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <p className="foodResultsMeta">
-            Showing {filteredRecipes.length} recipes
+            Showing {filteredRecipes.length} workouts
           </p>
         </div>
 
         <div className="foodRecipeGrid">
           {filteredRecipes.length > 0 ? (
             filteredRecipes.map((recipe) => (
-              <RecipeCard
+              <WorkoutCard
                 key={recipe.rid}
                 recipe={recipe}
                 ingredients={recipe.ingredients}
@@ -73,7 +73,7 @@ export default function RecipePage({ darkMode }) {
             ))
           ) : (
             <div className="foodEmptyState">
-              <h3 className="foodEmptyTitle">No recipes found</h3>
+              <h3 className="foodEmptyTitle">No workouts found</h3>
               <p className="foodEmptyText">Nothing matched "{searchTerm}". Try a different keyword.</p>
             </div>
           )}

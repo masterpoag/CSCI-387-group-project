@@ -10,7 +10,7 @@ import React from "react";
  */
 
 
-export default function RecipeCard({ recipe, ingredients = [] }) {
+export default function WorkoutCard({ recipe, ingredients = [] }) {
   return (
     <article className="recipeCard">
       <div className="recipeCardContent">
@@ -27,11 +27,11 @@ export default function RecipeCard({ recipe, ingredients = [] }) {
         <hr className="recipeCardDivider" />
 
         <div className="recipeCardSection">
-          <strong className="recipeCardLabel">Ingredients:</strong>
+          <strong className="recipeCardLabel">Steps:</strong>
           <ul className="recipeCardList">
             {ingredients.map((item, idx) => (
               <li key={idx}>
-                <strong>{parseFloat(item.qty).toFixed(2)}</strong> units of {item.name} 
+                <strong>{parseInt(item.qty)}</strong> {item.name} 
                 <span className="recipeCardCalories"> ({item.cal} cal)</span>
               </li>
             ))}
