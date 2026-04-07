@@ -1,15 +1,12 @@
-# React + Vite
+# TODO
+  - create Add food API
+  - Create the Recipe creation
+    - Has a text field for {Title} {Description}
+    - Ingredients Add button to add a new ingredient
+      - Has a Dropdown for {Food} if the food you want isnt there it allow you to create the new food.
+      - Has a text box for floats for the amount of the food  
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-=======
-Meal Planner
-
-To do
 
 Create python api to connect to db(using something like .env for security)
 
