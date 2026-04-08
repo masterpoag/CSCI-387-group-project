@@ -30,6 +30,32 @@ app.add_middleware(
 class Result():
     def __init__(self) -> None:
         self.data = {"Result": "Success", "Message": "", "Data": None}
+    
+    def construct_recipe(self) -> None:
+        self.data["Data"] = []
+
+    def add_recipe(self, count: int) -> None:
+        for _ in range(count):
+            self.data["Data"].append( 
+                {
+                    "name": str,
+                    "desc": str,
+                    "instruct": str,
+                    "isPublic": bool,
+                    "ingredients": []
+                }
+            )
+    
+    def add_food(self, index: int, count: int) -> None:
+        for _ in range(count):
+            self.data["Data"][index]["instruct"].append( 
+                {
+                    "name": str,
+                    "qty": float,
+                    "cal": int
+                }
+            )
+
     def get_data(self) -> dict:
         return self.data
 
@@ -64,7 +90,7 @@ async def hash_pass(pswd: str, t: int | None = None) -> tuple[str, int]:
 
 async def calc_UID(hash: float) -> int:
     try:
-        result =  math.floor(((hash - (math.e ** 4.5)) ** 2) / math.pi)
+        result =  round(((hash - (math.e ** 4.5)) ** 2) / math.pi)
     except:
         await log("UID Calculate failed!") 
         return -1
@@ -77,6 +103,43 @@ async def safe(msg: str) -> bool:
         if c in msg: return False
         
     return True
+
+async def auth_user(huid: float, uname: str) -> int | dict:
+    res = Result()    
+
+    # Check if user is logged in
+    with db.DBConnect() as (connection, cursor):
+        uid = await calc_UID(huid)
+
+        if uid == -1:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "huid corrupted"
+            await log("Passed hashed uid returned -1")
+
+            return res.get_data()
+    
+        stmt = "SELECT uname, uid FROM User WHERE uid = %s"
+        cursor.execute(stmt, [uid])
+
+        result = cursor.fetchall()
+    
+        if len(result) == 0:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Unknown user"
+            await log("No matching UID in User table")
+
+            return res.get_data()
+   
+        if result[0]["uname"] != uname: #type: ignore
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Unknown user, check logs"
+            await log("WARNING: UID does not match passed username. Something fishy might be going on!")
+
+            return res.get_data()
+
+        connection.commit()
+        
+        return uid 
 
 # API Endpoints
 @app.post("/api/create-recipe")
@@ -107,36 +170,13 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:
-            # Check if user is logged in
-            uid = await calc_UID(huid)
-            if uid == -1:
-                res.data["Result"] = "Failed"
-                res.data["Message"] = "huid corrupted"
-                await log("Passed hashed uid returned -1")
+            auth = await auth_user(huid, uname)
+            uid = 0
+            if type(auth) != int:
+                return auth
 
-                return res.get_data()
-    
-            stmt = "SELECT uname, uid FROM User WHERE uid = %s"
-            cursor.execute(stmt, [uid])
-
-            result = cursor.fetchall()
-    
-            if len(result) == 0:
-                res.data["Result"] = "Failed"
-                res.data["Message"] = "Unknown user"
-                await log("No matching UID in User table")
-
-                return res.get_data()
-   
-            if result[0]["uname"] != uname: #type: ignore
-                res.data["Result"] = "Failed"
-                res.data["Message"] = "Unknown user, check logs"
-                await log("WARNING: UID does not match passed username. Something fishy might be going on!")
-
-                return res.get_data()
-
-            connection.commit() 
-            # User is logged in correctly, maybe I should surround this logic in it's own file...
+            uid = auth
+            
             # Start transaction
             connection.start_transaction()
 
@@ -200,8 +240,56 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
             #Rollback
             connection.rollback()
 
+            return res.get_data()  
+
+@app.post("/api/get-user-recipe")
+async def get_user_recipe(huid: float, uname: str):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = auth
+
+            stmt = "SELECT rid, name, `desc`, instruct, isPublic FROM Recipe WHERE User_uid = %s"
+            cursor.execute(stmt, [uid])
+
+            recipes = cursor.fetchall()
+
+            recipe_list = []
+            for recipe in recipes:
+                rid = recipe["rid"] # type: ignore
+
+                stmt = "SELECT Food.name, Quantity.qty, Food.cal FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
+                cursor.execute(stmt, [rid]) # type: ignore
+                ingredients = cursor.fetchall()
+
+                recipe_list.append({
+                    "name": recipe["name"], # type: ignore
+                    "desc": recipe["desc"], # type: ignore
+                    "instruct": recipe["instruct"], # type: ignore
+                    "isPublic": bool(recipe["isPublic"]), # type: ignore
+                    "ingredients": ingredients
+                })
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Returning recipes for {uname}"
+            res.data["Data"] = recipe_list
+            await log(f"Returning {len(recipe_list)} recipes for {uname}")
+
             return res.get_data()
-    
+
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}")
+            connection.rollback()
+
+            return res.get_data()
+
 @app.post("/api/register")
 async def register(hasCG: bool, nu: NewUser):
     # A few things:
@@ -351,7 +439,7 @@ async def login(uname: str, upass: str):
 
                 return res.get_data()
 
-            # Password is correct, return hased uid
+            # Password is correct, return hashed uid
 
             huid = await hash_UID(stored_uid)
 
@@ -359,6 +447,8 @@ async def login(uname: str, upass: str):
             res.data["Message"] = f"{uname} successfully signed in"
             res.data["Data"] = huid
             await log(f"{uname} successfully signed in") 
+
+            connection.commit()
 
             return res.get_data()
                 
