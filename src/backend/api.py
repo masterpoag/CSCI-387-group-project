@@ -31,31 +31,6 @@ class Result():
     def __init__(self) -> None:
         self.data = {"Result": "Success", "Message": "", "Data": None}
     
-    def construct_recipe(self) -> None:
-        self.data["Data"] = []
-
-    def add_recipe(self, count: int) -> None:
-        for _ in range(count):
-            self.data["Data"].append( 
-                {
-                    "name": str,
-                    "desc": str,
-                    "instruct": str,
-                    "isPublic": bool,
-                    "ingredients": []
-                }
-            )
-    
-    def add_food(self, index: int, count: int) -> None:
-        for _ in range(count):
-            self.data["Data"][index]["instruct"].append( 
-                {
-                    "name": str,
-                    "qty": float,
-                    "cal": int
-                }
-            )
-
     def get_data(self) -> dict:
         return self.data
 
@@ -289,6 +264,49 @@ async def get_user_recipe(huid: float, uname: str):
             connection.rollback()
 
             return res.get_data()
+        
+@app.get("/api/get-public-recipe")
+async def get_public_recipe():
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT Recipe.rid, Recipe.name, Recipe.`desc`, Recipe.instruct, Recipe.isPublic, User.uname FROM Recipe JOIN User ON Recipe.User_uid = User.uid WHERE Recipe.isPublic = TRUE"
+            cursor.execute(stmt)
+
+            recipes = cursor.fetchall()
+
+            recipe_list = []
+            for recipe in recipes:
+                rid = recipe["rid"] # type: ignore
+
+                stmt = "SELECT Food.name, Quantity.qty, Food.cal FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
+                cursor.execute(stmt, [rid])
+                ingredients = cursor.fetchall()
+
+                recipe_list.append({
+                    "name": recipe["name"], # type: ignore
+                    "desc": recipe["desc"], # type: ignore
+                    "instruct": recipe["instruct"], # type: ignore
+                    "isPublic": bool(recipe["isPublic"]), # type: ignore
+                    "owner": recipe["uname"], # type: ignore
+                    "ingredients": ingredients
+                })
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Returning all public recipes"
+            res.data["Data"] = recipe_list
+            await log(f"Returning {len(recipe_list)} public recipes")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}")
+            connection.rollback()
+
+            return res.get_data()
 
 @app.post("/api/register")
 async def register(hasCG: bool, nu: NewUser):
@@ -359,6 +377,7 @@ async def register(hasCG: bool, nu: NewUser):
             await log(f"Database threw an error!\n\t{err}") 
 
             return res.get_data()
+
 
 @app.get("/api/get-food")
 async def get_food():
