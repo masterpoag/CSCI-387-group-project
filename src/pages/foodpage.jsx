@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import RecipeCard from "./cards/RecipeCard"; 
 
 
@@ -30,13 +30,44 @@ const MOCK_RECIPES = [
   }
 ];
 
+const endpoint = "https://gp.vroey.us/api/get-public-recipe";
+
 // </test data>
 
-export default function RecipePage({ darkMode }) {
-  const [searchTerm, setSearchTerm] = useState("");
+  export default function RecipePage({ darkMode }) {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [recipes, setRecipes] = useState([]);
+
+
+    useEffect(() => {
+      async function fetchRecipes() {
+        try {
+          const response = await fetch(endpoint, {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          });
+  
+          const data = await response.json();
+          console.log(data);
+  
+          setRecipes(data.Data);
+        } catch (err) {
+          console.error("Error fetching recipes:", err);
+        }
+      }
+  
+      fetchRecipes();
+    }, []);
+
+
+
+
 
   // Filter based on name or description
-  const filteredRecipes = MOCK_RECIPES.filter((recipe) =>
+  const filteredRecipes = recipes.filter((recipe) =>
     recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     recipe.desc.toLowerCase().includes(searchTerm.toLowerCase())
   );
