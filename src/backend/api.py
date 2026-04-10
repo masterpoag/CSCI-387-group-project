@@ -238,7 +238,7 @@ async def get_user_recipe(huid: float, uname: str):
             for recipe in recipes:
                 rid = recipe["rid"] # type: ignore
 
-                stmt = "SELECT Food.name, Quantity.qty, Food.cal FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
+                stmt = "SELECT Food.name, Quantity.qty, Food.cal, Food.base_measure FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
                 cursor.execute(stmt, [rid]) # type: ignore
                 ingredients = cursor.fetchall()
 
@@ -278,9 +278,9 @@ async def get_public_recipe():
 
             recipe_list = []
             for recipe in recipes:
-                rid = recipe["rid"] # type: ignore
+                rid = int(recipe["rid"]) # type: ignore
 
-                stmt = "SELECT Food.name, Quantity.qty, Food.cal FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
+                stmt = "SELECT Food.name, Quantity.qty, Food.cal, Food.base_measure FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
                 cursor.execute(stmt, [rid])
                 ingredients = cursor.fetchall()
 
