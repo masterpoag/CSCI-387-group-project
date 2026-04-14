@@ -117,6 +117,45 @@ async def auth_user(huid: float, uname: str) -> int | dict:
         return uid 
 
 # API Endpoints
+
+@app.post("/api/create-food")
+async def create_food(nf: Food):
+    '''
+    Check if food exists,
+    If it doesn't insert. 
+    '''
+
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT name FROM Food WHERE name = %s"
+
+            cursor.execute(stmt, [nf.fname])
+
+            names = cursor.fetchall()
+
+            if len(names) != 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Food already exists in database!"
+                await log("Error: Food already exists in database!")
+
+                return res.get_data()
+
+            stmt = "INSERT INTO Food (cal, base_measure, name) VALUES (%s, %s, %s)"
+
+            cursor.execute(stmt, [nf.cal, nf.base_measurement, nf.fname])
+
+            connection.commit()
+        except mysql.connector.Error as err:
+            connection.rollback()
+            await log(f"Database threw an error!\n\t{err}")
+
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+
+            return res.get_data() 
+
 @app.post("/api/create-recipe")
 async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Food]):
     """
@@ -425,17 +464,17 @@ async def register(hasCG: bool, nu: NewUser):
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:       
-            if len(nu.uname) > 30:
+            if len(nu.uname) > 20:
                 res.data["Result"] = "Failed"
-                res.data["Message"] = "uname is greater than 30"
-                await log(f"len(nu.umane) ({len(nu.uname)}) is greater than 30!")
+                res.data["Message"] = "username is greater than 20"
+                await log(f"len(nu.umane) ({len(nu.uname)}) is greater than 20!")
 
                 return res.get_data()
    
             isSafe = await safe(nu.uname)
             if not isSafe:
                 res.data["Result"] = "Failed"
-                res.data["Message"] = "uname contains banned characters"
+                res.data["Message"] = "username contains banned characters"
                 await log(f"{nu.uname} contains banned characters")
 
                 return res.get_data()
@@ -446,8 +485,8 @@ async def register(hasCG: bool, nu: NewUser):
 
             if len(result) != 0:
                 res.data["Result"] = "Failed"
-                res.data["Message"] = "Username already exsists in database"
-                await log(f"{nu.uname} already exsists in database!")
+                res.data["Message"] = "Username already exists in database"
+                await log(f"{nu.uname} already exists in database!")
 
                 return res.get_data()
 
