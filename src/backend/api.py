@@ -238,7 +238,7 @@ async def get_user_recipe(huid: float, uname: str):
             for recipe in recipes:
                 rid = recipe["rid"] # type: ignore
 
-                stmt = "SELECT Food.name, Quantity.qty, Food.cal FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
+                stmt = "SELECT Food.name, Quantity.qty, Food.cal, Food.base_measure FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
                 cursor.execute(stmt, [rid]) # type: ignore
                 ingredients = cursor.fetchall()
 
@@ -264,7 +264,37 @@ async def get_user_recipe(huid: float, uname: str):
             connection.rollback()
 
             return res.get_data()
+
+@app.get("/api/get-foods")
+async def get_foods():
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT * FROM Food"
+            cursor.execute(stmt)
+
+            foods = cursor.fetchall()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Returning Foods"
+            res.data["Data"] = foods
+
+            connection.commit()
+
+            await log(f"Returning foods:\n\t{foods}")
         
+            return res.get_data()
+
+        except mysql.connector.Error as err: 
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}")
+            connection.rollback()
+
+            return res.get_data()
+
+
 @app.get("/api/get-public-recipe")
 async def get_public_recipe():
     res = Result()
@@ -278,9 +308,9 @@ async def get_public_recipe():
 
             recipe_list = []
             for recipe in recipes:
-                rid = recipe["rid"] # type: ignore
+                rid = int(recipe["rid"]) # type: ignore
 
-                stmt = "SELECT Food.name, Quantity.qty, Food.cal FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
+                stmt = "SELECT Food.name, Quantity.qty, Food.cal, Food.base_measure FROM Quantity JOIN Food ON Quantity.Food_fid = Food.fid WHERE Quantity.Recipe_rid = %s"
                 cursor.execute(stmt, [rid])
                 ingredients = cursor.fetchall()
 
@@ -297,6 +327,83 @@ async def get_public_recipe():
             res.data["Message"] = "Returning all public recipes"
             res.data["Data"] = recipe_list
             await log(f"Returning {len(recipe_list)} public recipes")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}")
+            connection.rollback()
+
+            return res.get_data()
+
+@app.get("/api/get-public-workout")
+async def get_public_workout():
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT Workout.wid, Workout.instructions, Workout.cal, Workout.isPublic, User.uname FROM Workout JOIN User ON Workout.User_uid = User.uid WHERE Workout.isPublic = TRUE"
+            cursor.execute(stmt)
+
+            workouts = cursor.fetchall()
+
+            workout_list = []
+            for workout in workouts:
+                workout_list.append({
+                    "wid": int(workout["wid"]), # type: ignore
+                    "instructions": workout["instructions"], # type: ignore
+                    "cal": workout["cal"], # type: ignore
+                    "isPublic": bool(workout["isPublic"]), # type: ignore
+                    "owner": workout["uname"], # type: ignore
+                })
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Returning all public workouts"
+            res.data["Data"] = workout_list
+            await log(f"Returning {len(workout_list)} public workouts")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}")
+            connection.rollback()
+
+            return res.get_data()
+
+@app.post("/api/get-user-workout")
+async def get_user_workout(huid: float, uname: str):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = auth
+
+            stmt = "SELECT wid, instructions, cal, isPublic FROM Workout WHERE User_uid = %s"
+            cursor.execute(stmt, [uid])
+
+            workouts = cursor.fetchall()
+
+            workout_list = []
+            for workout in workouts:
+                workout_list.append({
+                    "wid": int(workout["wid"]), # type: ignore
+                    "instructions": workout["instructions"], # type: ignore
+                    "cal": workout["cal"], # type: ignore
+                    "isPublic": bool(workout["isPublic"]), # type: ignore
+                })
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Returning workouts for {uname}"
+            res.data["Data"] = workout_list
+            await log(f"Returning {len(workout_list)} workouts for {uname}")
 
             return res.get_data()
 

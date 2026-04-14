@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function LoginPage({/* Add Vars here for passthrough*/}) {
+export default function LoginPage({setIsAuthenticated}) {
   const navigate = useNavigate();
-
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  
   const [isRegistering, setIsRegistering] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -26,52 +27,69 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
     e.preventDefault();
     setError("");
     setLoading(true);
-
+    
     try {
-      if (isRegistering && formData.password !== formData.confirmPassword) {
-        throw new Error("Passwords do not match");
-      }
-      const endpoint = isRegistering
-        ? "https://gp.vroey.us/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Yes but requires this to be hosted on 2 different servers. Do I care. NO.
-        : "https://gp.vroey.us/api/login?uname="+formData.email+"&upass="+formData.password; //TODO THIS NEEDS TO BE FIXED WITH ENCRIPTION
-
-      const response = isRegistering ? await fetch(endpoint, {      // This runs if you are Registering
-        method: "POST",
-        headers: {
-          "accept": "application/json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uname: formData.email,
-          upass: formData.password,
-          weight: 0.01,             // All hardcodes need to be added to the register form 
-          atype: 1,                             // Most likely hardcoded in most cases
-          isMetric: false,
-          calGoal: 2500
-        }),
-      })
-      : await fetch(endpoint, {           // This runs if you are loging in.
-        method: "GET",
-        headers: {
-          "accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
+      let response;
+  
+      if (isRegistering) {
+        try {
+          const response = await fetch(
+            "https://gp.vroey.us/api/register?hasCG=false",
+            {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                uname: formData.email,
+                upass: formData.password,
+                weight: 0.01, 
+                atype: 1,
+                isMetric: false,
+                calGoal: 2500,
+              }),
+            }
+          );
       
-      console.log(response);
+          const data = await response.json()
+          console.log(data)
+      
+          if (data.Result !== "Success") {
+            throw new Error(data.Message || "Registration failed");
+          }
+          setIsRegistering(false);
+          setShowSuccessPopup(true);
+          setFormData({
+            email: "",
+            password: "",
+            confirmPassword: "",
+          });
+          setError("");
+    
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
+        }
+  
+      } else {
+        response = await fetch(
+          `https://gp.vroey.us/api/login?uname=${encodeURIComponent(formData.email)}&upass=${encodeURIComponent(formData.password)}`
+        );
+        const data = await response.json()
+        if (data.Result !== "Success") {
+          throw new Error(data.Message || "Login failed");
+        }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong");
+        if (data.Data) {
+          localStorage.setItem("username", formData.email)
+          localStorage.setItem("token", data.Data);
+          setIsAuthenticated(true);
+          navigate("/");
+        }
       }
 
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-      navigate("/food");
-
+  
     } catch (err) {
       setError(err.message);
     } finally {
@@ -161,6 +179,21 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
           </button>
         </p>
       </div>
+      {showSuccessPopup && (
+    <div className="popupOverlay">
+        <div className="popupBox">
+          <h3>Account Created</h3>
+          <p>You can now log in</p>
+
+          <button
+            className="primaryButton"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    )}
     </div>
   );
 }

@@ -7,6 +7,11 @@ import WorkoutPage from "./pages/workoutpage.jsx";
 
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem("token");
+  });
+
+
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem("theme");
     if (savedTheme === "light" || savedTheme === "dark") {
@@ -71,20 +76,33 @@ function App() {
                 >
                   Workouts
                 </NavLink>
-                <NavLink
-                  to="/login"
-                  className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
-                >
-                  Login
-                </NavLink>
-                {themeToggle}
+                {isAuthenticated ? (
+                  <button
+                    className="topNavLink"
+                    onClick={() => {
+                      localStorage.removeItem("token");
+                      setIsAuthenticated(false);
+                    }}
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <NavLink
+                    to="/login"
+                    className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                    
+                  >
+                    Login
+                  </NavLink>
+                )}
+              {themeToggle}
               </div>
             </div>
           </nav>
         )}
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/food" element={<FoodPage />} />
           <Route path="/workouts" element={<WorkoutPage />} />
         </Routes>

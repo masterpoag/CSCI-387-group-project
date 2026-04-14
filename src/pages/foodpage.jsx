@@ -11,6 +11,8 @@ const IMPERIAL_BASE_UNITS = [
   { value: 2, label: "Cup" },
   { value: 3, label: "Teaspoon (tsp)" },
 ];
+const huid = localStorage.getItem("token");
+const uname = localStorage.getItem("username");
 
 const NEW_FOOD_VALUE = "__new_food__";
 

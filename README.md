@@ -89,3 +89,107 @@ Fields:
 - Result: Always either `"Success", "Failed", or "Warning".
 - Message: An english description of the result.
 - Data: Default: `null`, otherwise has data specified by the api endpoint. 
+
+**Getting all foods**
+
+This endpoint requires a GET request.
+
+Here is an example GET request:
+```
+curl -X 'GET' \
+  'http://gp-test.vroey.us/api/get-foods' \
+  -H 'accept: application/json'
+```
+
+No parameters are required.
+
+*Data Response*: A list of all foods in the database. Each entry contains:
+- `fid`: The food's unique ID.
+- `name`: The food's name.
+- `cal`: Calories per base measurement unit.
+- `base_measure`: Index of the base measurement unit (0=Pound, 1=Ounce, 2=Cup, 3=Teaspoon).
+
+Example response:
+```json
+{
+  "Result": "Success",
+  "Message": "Returning Foods",
+  "Data": [
+    {"fid": 1, "name": "chicken breast", "cal": 165, "base_measure": 0}
+  ]
+}
+```
+
+**Getting all public workouts**
+
+This endpoint requires a GET request.
+
+Here is an example GET request:
+```
+curl -X 'GET' \
+  'http://gp-test.vroey.us/api/get-public-workout' \
+  -H 'accept: application/json'
+```
+
+No parameters are required.
+
+*Data Response*: A list of all public workouts. Each entry contains:
+- `wid`: The workout's unique ID.
+- `instructions`: The workout instructions.
+- `cal`: Calories burned.
+- `isPublic`: Always `true` for this endpoint.
+- `owner`: The username of the user who created the workout.
+
+Example response:
+```json
+{
+  "Result": "Success",
+  "Message": "Returning all public workouts",
+  "Data": [
+    {
+      "wid": 1,
+      "instructions": "3 sets of 10 push-ups",
+      "cal": 50,
+      "isPublic": true,
+      "owner": "colby@test.com"
+    }
+  ]
+}
+```
+
+**Getting a user's workouts**
+
+This endpoint requires a POST request. The user must be logged in.
+
+Here is an example POST request:
+```
+curl -X 'POST' \
+  'http://gp-test.vroey.us/api/get-user-workout?huid=93.98045859812781&uname=colby%40test.com' \
+  -H 'accept: application/json'
+```
+
+URL parameters:
+- `huid` (required): The hashed UID returned from `/api/login`.
+- `uname` (required): The username of the logged-in user.
+
+*Data Response*: A list of all workouts belonging to the authenticated user. Each entry contains:
+- `wid`: The workout's unique ID.
+- `instructions`: The workout instructions.
+- `cal`: Calories burned.
+- `isPublic`: Whether the workout is public.
+
+Example response:
+```json
+{
+  "Result": "Success",
+  "Message": "Returning workouts for colby@test.com",
+  "Data": [
+    {
+      "wid": 1,
+      "instructions": "3 sets of 10 push-ups",
+      "cal": 50,
+      "isPublic": true
+    }
+  ]
+}
+```
