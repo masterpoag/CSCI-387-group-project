@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function LoginPage({setIsAuthenticated}) {
   const navigate = useNavigate();
-
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  
   const [isRegistering, setIsRegistering] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -31,30 +32,44 @@ export default function LoginPage({setIsAuthenticated}) {
       let response;
   
       if (isRegistering) {
-        response = await fetch("https://gp.vroey.us/api/register?hasCG=false", {
-          method: "POST",
-          headers: {
-            "accept": "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            uname: formData.email,
-            upass: formData.password,
-            weight: 0.01,
-            atype: 1,
-            isMetric: false,
-            calGoal: 2500,
-          }),
-        });
-  
-        const data = await response.json();
-  
-        if (!response.ok) {
-          throw new Error(data.message || "Registration failed");
-        }
-  
-        if (data.token) {
-          localStorage.setItem("token", data.token);
+        try {
+          const response = await fetch(
+            "https://gp.vroey.us/api/register?hasCG=false",
+            {
+              method: "POST",
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                uname: formData.email,
+                upass: formData.password,
+                weight: 0.01, 
+                atype: 1,
+                isMetric: false,
+                calGoal: 2500,
+              }),
+            }
+          );
+      
+          const data = await response.json()
+          console.log(data)
+      
+          if (data.Result !== "Success") {
+            throw new Error(data.Message || "Registration failed");
+          }
+          setIsRegistering(false);
+          setShowSuccessPopup(true);
+          setFormData({
+            email: "",
+            password: "",
+            confirmPassword: "",
+          });
+          setError("");
+    
+        } catch (err) {
+          console.error(err);
+          alert(err.message);
         }
   
       } else {
@@ -68,7 +83,7 @@ export default function LoginPage({setIsAuthenticated}) {
 
         if (data.Data) {
           localStorage.setItem("username", formData.email)
-          localStorage.setItem("token", data.Data); // assuming token is in Data
+          localStorage.setItem("token", data.Data);
           setIsAuthenticated(true);
           navigate("/");
         }
@@ -164,6 +179,21 @@ export default function LoginPage({setIsAuthenticated}) {
           </button>
         </p>
       </div>
+      {showSuccessPopup && (
+    <div className="popupOverlay">
+        <div className="popupBox">
+          <h3>Account Created</h3>
+          <p>You can now log in</p>
+
+          <button
+            className="primaryButton"
+            onClick={() => setShowSuccessPopup(false)}
+          >
+            OK
+          </button>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
