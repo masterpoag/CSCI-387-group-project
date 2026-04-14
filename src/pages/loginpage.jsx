@@ -32,8 +32,8 @@ export default function LoginPage({/* Add Vars here for passthrough*/}) {
         throw new Error("Passwords do not match");
       }
       const endpoint = isRegistering
-        ? "https://gp-test.vroey.us/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Yes but requires this to be hosted on 2 different servers. Do I care. NO.
-        : "https://gp-test.vroey.us/api/login?uname="+formData.email+"&upass="+formData.password; //TODO THIS NEEDS TO BE FIXED WITH ENCRIPTION
+        ? "https://gp.vroey.us/api/register?hasCG=false"  // Is this jank. Yes. Does it work. Yes but requires this to be hosted on 2 different servers. Do I care. NO.
+        : "https://gp.vroey.us/api/login?uname="+formData.email+"&upass="+formData.password; //TODO THIS NEEDS TO BE FIXED WITH ENCRIPTION
 
       const response = isRegistering ? await fetch(endpoint, {      // This runs if you are Registering
         method: "POST",

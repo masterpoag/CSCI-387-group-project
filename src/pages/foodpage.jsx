@@ -3,9 +3,8 @@ import RecipeCard from "./cards/RecipeCard";
 import SearchableSelect from "../components/SearchableSelect";
 import NewFoodModal from "../components/NewFoodModal";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp-test.vroey.us";
+const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
-/** Matches backend `base_measurement` on Food (imperial base units). */
 const IMPERIAL_BASE_UNITS = [
   { value: 0, label: "Pound (lb)" },
   { value: 1, label: "Ounce (oz)" },
@@ -15,102 +14,77 @@ const IMPERIAL_BASE_UNITS = [
 
 const NEW_FOOD_VALUE = "__new_food__";
 
-const MOCK_RECIPES = [
-  {
-    rid: 1,
-    name: "Classic Avocado Toast",
-    desc: "A simple, healthy breakfast staple.",
-    instruct: "1. Toast the bread until golden.\n2. Mash avocado with salt and pepper.\n3. Spread on toast.",
-    isPublic: true,
-    ingredients: [
-      { name: "Sourdough", qty: 1.0, cal: 120 },
-      { name: "Avocado", qty: 0.5, cal: 160 },
-    ],
-  },
-  {
-    rid: 2,
-    name: "Protein Power Bowl",
-    desc: "High protein lunch for active days.",
-    instruct: "1. Steam the quinoa.\n2. Grill chicken breast.\n3. Combine in a bowl with dressing.",
-    isPublic: false,
-    ingredients: [
-      { name: "Chicken Breast", qty: 1.0, cal: 280 },
-      { name: "Quinoa", qty: 0.75, cal: 180 },
-      { name: "Spinach", qty: 2.0, cal: 14 },
-    ],
-  },
-];
-
-function normalizeFoodRows(data) {
-  if (!Array.isArray(data)) return [];
-  return data
-    .map((row) => (typeof row?.name === "string" ? row.name.trim() : ""))
-    .filter(Boolean);
-}
-
 export default function RecipePage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [foodsFromApi, setFoodsFromApi] = useState([]);
+  const [recipes, setRecipes] = useState([]);
   const [foodsError, setFoodsError] = useState("");
+
   const [extraFoods, setExtraFoods] = useState([]);
+
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [selectedFood, setSelectedFood] = useState(null);
+
   const [newFoodModalOpen, setNewFoodModalOpen] = useState(false);
   const [createRecipeModalOpen, setCreateRecipeModalOpen] = useState(false);
 
-  function closeCreateRecipeModal() {
-    setCreateRecipeModalOpen(false);
-    setSelectedUnit(null);
-    setSelectedFood(null);
-    setNewFoodModalOpen(false);
-  }
+  const [recipeFoods, setRecipeFoods] = useState([]);
 
+  const [newRecipe, setNewRecipe] = useState({
+    rname: "",
+    desc: "",
+    instruct: "",
+    isPublic: true,
+  });
+
+  // ================= LOAD RECIPES =================
   useEffect(() => {
-    let cancelled = false;
-    async function loadFoods() {
-      setFoodsError("");
+    async function loadRecipes() {
       try {
-        const res = await fetch(`${API_BASE}/api/get-food`, {
-          headers: { accept: "application/json" },
-        });
+        const res = await fetch(`${API_BASE}/api/get-public-recipe`);
         const json = await res.json();
-        if (cancelled) return;
-        if (json?.Result === "Success" && Array.isArray(json?.Data)) {
-          setFoodsFromApi(normalizeFoodRows(json.Data));
+
+        if (json?.Result === "Success") {
+          setRecipes(json.Data ?? []);
         } else {
-          setFoodsFromApi([]);
-          setFoodsError(json?.Message || "Could not load foods.");
+          setFoodsError(json?.Message || "Failed to load recipes");
         }
       } catch {
-        if (!cancelled) {
-          setFoodsFromApi([]);
-          setFoodsError("Food list unavailable (network or CORS).");
-        }
+        setFoodsError("Network error");
       }
     }
-    loadFoods();
-    return () => {
-      cancelled = true;
-    };
+
+    loadRecipes();
   }, []);
 
-  const allFoodNames = useMemo(() => {
-    const set = new Set([...foodsFromApi, ...extraFoods.map((f) => f.name)]);
-    return [...set].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
-  }, [foodsFromApi, extraFoods]);
+  // ================= FILTER =================
+  const filteredRecipes = useMemo(() => {
+    const term = searchTerm.toLowerCase();
 
-  const unitOptions = useMemo(
-    () => IMPERIAL_BASE_UNITS.map((u) => ({ value: u.value, label: u.label })),
-    []
-  );
+    return recipes.filter((r) =>
+      r.name?.toLowerCase().includes(term) ||
+      r.desc?.toLowerCase().includes(term) ||
+      r.instruct?.toLowerCase().includes(term)
+    );
+  }, [recipes, searchTerm]);
+
+  // ================= FOODS =================
+  const allFoodNames = useMemo(() => {
+    const foods = [];
+
+    recipes.forEach((r) => {
+      r.ingredients?.forEach((i) => {
+        if (i?.name) foods.push(i.name);
+      });
+    });
+
+    extraFoods.forEach((f) => foods.push(f.name));
+
+    return [...new Set(foods)];
+  }, [recipes, extraFoods]);
 
   const foodOptions = useMemo(() => {
-    const fromDb = allFoodNames.map((name) => ({
-      value: name,
-      label: name,
-    }));
     return [
-      ...fromDb,
+      ...allFoodNames.map((f) => ({ value: f, label: f })),
       {
         value: NEW_FOOD_VALUE,
         label: "+ New food…",
@@ -119,34 +93,99 @@ export default function RecipePage() {
     ];
   }, [allFoodNames, selectedUnit]);
 
-  const selectedUnitLabel =
-    IMPERIAL_BASE_UNITS.find((u) => u.value === selectedUnit)?.label ?? "selected unit";
+  const unitOptions = IMPERIAL_BASE_UNITS.map((u) => ({
+    value: u.value,
+    label: u.label,
+  }));
 
+  const selectedUnitLabel =
+    IMPERIAL_BASE_UNITS.find((u) => u.value === selectedUnit)?.label ??
+    "selected unit";
+
+  // ================= HANDLERS =================
   function handleFoodChange(val) {
     if (val === NEW_FOOD_VALUE) {
       if (selectedUnit === null) return;
       setNewFoodModalOpen(true);
       return;
     }
+
     setSelectedFood(val);
+
+    setRecipeFoods((prev) => [
+      ...prev,
+      {
+        fname: val,
+        qty: 1,
+        isNew: extraFoods.some((f) => f.name === val),
+        cal: extraFoods.find((f) => f.name === val)?.cal ?? 0,
+        base_measurement: selectedUnit,
+      },
+    ]);
+  }
+
+  function updateQty(index, value) {
+    const val = Number(value);
+
+    setRecipeFoods((prev) =>
+      prev.map((f, i) => (i === index ? { ...f, qty: val } : f))
+    );
   }
 
   function handleNewFoodSave({ name, cal }) {
-    setExtraFoods((prev) => {
-      if (prev.some((f) => f.name.toLowerCase() === name.toLowerCase())) {
-        return prev;
-      }
-      return [...prev, { name, cal, baseUnit: selectedUnit }];
-    });
-    setSelectedFood(name);
+    setExtraFoods((prev) => [...prev, { name, cal }]);
+
+    setRecipeFoods((prev) => [
+      ...prev,
+      {
+        fname: name,
+        qty: 1,
+        isNew: true,
+        cal,
+        base_measurement: selectedUnit,
+      },
+    ]);
   }
 
-  const filteredRecipes = MOCK_RECIPES.filter(
-    (recipe) =>
-      recipe.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      recipe.desc.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  function buildCreateRecipePayload() {
+    return {
+      nr: {
+        rname: newRecipe.rname,
+        desc: newRecipe.desc,
+        instruct: newRecipe.instruct,
+        isPublic: newRecipe.isPublic,
+      },
+      foods: recipeFoods,
+    };
+  }
 
+  async function handleCreateRecipe() {
+    try {
+      const payload = buildCreateRecipePayload();
+
+      const res = await fetch(
+        `${API_BASE}/api/create-recipe?huid=1&uname=joey`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const json = await res.json();
+
+      if (json?.Result === "Success") {
+        setCreateRecipeModalOpen(false);
+        setRecipeFoods([]);
+      } else {
+        console.error(json?.Message);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  // ================= UI =================
   return (
     <div className="foodPage">
       <div className="foodPageContent">
@@ -160,94 +199,133 @@ export default function RecipePage() {
               Create Recipe +
             </button>
           </div>
+
           <p className="foodKicker">Find your next meal</p>
           <h1 className="foodTitle">Recipe Explorer</h1>
-          <p className="foodSubtitle">Search by recipe name or description.</p>
+
           <input
             className="foodSearchInput"
-            type="text"
-            placeholder="Search by recipe name or description..."
+            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <p className="foodResultsMeta">Showing {filteredRecipes.length} recipes</p>
+
+          <p className="foodResultsMeta">
+            Showing {filteredRecipes.length} recipes
+          </p>
         </div>
 
         <div className="foodRecipeGrid">
           {filteredRecipes.length > 0 ? (
             filteredRecipes.map((recipe) => (
-              <RecipeCard key={recipe.rid} recipe={recipe} ingredients={recipe.ingredients} />
+              <RecipeCard
+                key={`${recipe.name}-${recipe.owner}`}
+                recipe={recipe}
+                ingredients={recipe.ingredients}
+              />
             ))
           ) : (
             <div className="foodEmptyState">
               <h3 className="foodEmptyTitle">No recipes found</h3>
               <p className="foodEmptyText">
-                Nothing matched &quot;{searchTerm}&quot;. Try a different keyword.
+                Try a different keyword.
               </p>
             </div>
           )}
         </div>
       </div>
 
+      {/* ================= MODAL ================= */}
       {createRecipeModalOpen && (
         <div
           className="createRecipeModalBackdrop"
-          role="presentation"
-          onMouseDown={closeCreateRecipeModal}
+          onClick={() => setCreateRecipeModalOpen(false)}
         >
           <div
             className="createRecipeModalDialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="createRecipeModalTitle"
-            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="createRecipeModalHeader">
-              <h2 id="createRecipeModalTitle" className="createRecipeModalTitle">
-                Create recipe
-              </h2>
+              <h2 className="createRecipeModalTitle">Create recipe</h2>
+
               <button
-                type="button"
                 className="createRecipeModalClose"
-                aria-label="Close"
-                onClick={closeCreateRecipeModal}
+                onClick={() => setCreateRecipeModalOpen(false)}
               >
                 ×
               </button>
             </div>
-            <section className="foodIngredientPanel foodIngredientPanelInModal" aria-label="Ingredient lookup">
-              <h3 className="foodIngredientTitle">Foods &amp; units</h3>
-              <p className="foodIngredientSubtitle">
-                Choose a base unit, then pick a food from the database or add a new one. New foods
-                use calories per <strong>1</strong> of the unit you selected (matches the API&apos;s
-                imperial base units).
-              </p>
-              {foodsError && <p className="foodIngredientWarning">{foodsError}</p>}
+
+            <section className="foodIngredientPanel foodIngredientPanelInModal">
+              <h3 className="foodIngredientTitle">Foods & units</h3>
+
+              {foodsError && (
+                <p className="foodIngredientWarning">{foodsError}</p>
+              )}
+
+              <input
+                className="foodSearchInput"
+                placeholder="Recipe name"
+                value={newRecipe.rname}
+                onChange={(e) =>
+                  setNewRecipe({ ...newRecipe, rname: e.target.value })
+                }
+              />
+
+              <input
+                className="foodSearchInput"
+                placeholder="Description"
+                value={newRecipe.desc}
+                onChange={(e) =>
+                  setNewRecipe({ ...newRecipe, desc: e.target.value })
+                }
+              />
+
+              <textarea
+                className="foodSearchInput"
+                placeholder="Instructions"
+                value={newRecipe.instruct}
+                onChange={(e) =>
+                  setNewRecipe({ ...newRecipe, instruct: e.target.value })
+                }
+              />
+
               <div className="foodIngredientRow">
                 <SearchableSelect
-                  label="Unit (imperial)"
-                  placeholder="Search units…"
+                  label="Unit"
                   options={unitOptions}
                   value={selectedUnit}
-                  onChange={(v) => {
-                    setSelectedUnit(typeof v === "number" ? v : Number(v));
-                  }}
+                  onChange={(v) => setSelectedUnit(Number(v))}
                 />
+
                 <SearchableSelect
                   label="Food"
-                  placeholder="Search foods…"
                   options={foodOptions}
                   value={selectedFood}
                   onChange={handleFoodChange}
-                  emptyMessage="No foods match"
                 />
               </div>
-              {selectedUnit !== null && selectedFood && selectedFood !== NEW_FOOD_VALUE && (
-                <p className="foodIngredientSummary">
-                  Selected: <strong>{selectedFood}</strong> · base unit:{" "}
-                  <strong>{selectedUnitLabel}</strong>
-                </p>
-              )}
+
+              {/* INGREDIENT LIST */}
+              {recipeFoods.map((food, index) => (
+                <div key={index} className="foodIngredientRow">
+                  <span>{food.fname}</span>
+
+                  <input
+                    className="foodSearchInput"
+                    type="number"
+                    value={food.qty}
+                    onChange={(e) => updateQty(index, e.target.value)}
+                  />
+                </div>
+              ))}
+
+              <button
+                className="foodCreateRecipeBtn"
+                onClick={handleCreateRecipe}
+              >
+                Save Recipe
+              </button>
             </section>
           </div>
         </div>
