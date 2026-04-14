@@ -2,37 +2,11 @@ import React, { useState, useEffect } from "react";
 import RecipeCard from "./cards/RecipeCard"; 
 
 
-// <test data>
-
-const MOCK_RECIPES = [
-  {
-    rid: 1,
-    name: "Classic Avocado Toast",
-    desc: "A simple, healthy breakfast staple.",
-    instruct: "1. Toast the bread until golden.\n2. Mash avocado with salt and pepper.\n3. Spread on toast.",
-    isPublic: true,
-    ingredients: [
-      { name: "Sourdough", qty: 1.0, cal: 120 },
-      { name: "Avocado", qty: 0.5, cal: 160 }
-    ]
-  },
-  {
-    rid: 2,
-    name: "Protein Power Bowl",
-    desc: "High protein lunch for active days.",
-    instruct: "1. Steam the quinoa.\n2. Grill chicken breast.\n3. Combine in a bowl with dressing.",
-    isPublic: false,
-    ingredients: [
-      { name: "Chicken Breast", qty: 1.0, cal: 280 },
-      { name: "Quinoa", qty: 0.75, cal: 180 },
-      { name: "Spinach", qty: 2.0, cal: 14 }
-    ]
-  }
-];
+const huid = localStorage.getItem("token");
+const uname = localStorage.getItem("username");
 
 const endpoint = "https://gp.vroey.us/api/get-public-recipe";
 
-// </test data>
 
   export default function RecipePage({ darkMode }) {
     const [searchTerm, setSearchTerm] = useState("");
