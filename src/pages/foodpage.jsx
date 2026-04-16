@@ -170,6 +170,20 @@ export default function RecipePage() {
       foods: recipeFoods,
     };
   }
+  function handleCreateRecipeClick() {
+    const token = localStorage.getItem("token");
+    const username = localStorage.getItem("username");
+
+    if (!token || !username) {
+      const confirmed = window.confirm("You need to log in to create a recipe. Would you like to log in now?");
+      if (confirmed) {
+        window.location.href = "/~group3sp26/login";
+      }
+      return;
+    }
+
+    setCreateRecipeModalOpen(true);
+  }
 
   async function handleCreateRecipe() {
     setFormError("");
@@ -227,7 +241,7 @@ export default function RecipePage() {
             <button
               type="button"
               className="foodCreateRecipeBtn"
-              onClick={() => setCreateRecipeModalOpen(true)}
+              onClick={handleCreateRecipeClick}
             >
               Create Recipe +
             </button>
