@@ -1016,7 +1016,7 @@ button:focus-visible {
   max-height: min(92vh, 960px);
   overflow-y: auto;
   padding: 24px 26px 26px;
-  border-radius: 20px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(15, 23, 42, 0.96);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
@@ -1046,7 +1046,7 @@ button:focus-visible {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.9);
@@ -1282,7 +1282,7 @@ button:focus-visible {
 
 .createRecipeSection {
   padding: 1.25rem;
-  border-radius: 16px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.10);
 }
@@ -1314,6 +1314,7 @@ button:focus-visible {
 .createRecipeTextarea {
   min-height: 80px;
   resize: vertical;
+  border-radius: 8px;
 }
 
 .createRecipeInstructions {
@@ -1387,7 +1388,7 @@ button:focus-visible {
 /* Ingredients Table */
 .createRecipeIngredientsTable {
   margin-top: 1rem;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
@@ -1442,7 +1443,7 @@ button:focus-visible {
 .createRecipeQtyInput {
   width: 100%;
   padding: 6px 10px !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   font-size: 0.9rem !important;
   min-height: unset !important;
   text-align: center;
@@ -1451,7 +1452,7 @@ button:focus-visible {
 .createRecipeRemoveBtn {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 77, 109, 0.3);
   background: rgba(255, 77, 109, 0.1);
   color: #ff6b8a;
@@ -1478,7 +1479,7 @@ button:focus-visible {
   color: rgba(255, 255, 255, 0.5);
   font-size: 0.9rem;
   border: 1px dashed rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
+  border-radius: 8px;
 }
 
 /* Error Display */
@@ -1489,7 +1490,7 @@ button:focus-visible {
   padding: 0.875rem 1rem;
   background: rgba(255, 77, 109, 0.12);
   border: 1px solid rgba(255, 77, 109, 0.35);
-  border-radius: 12px;
+  border-radius: 8px;
   color: #ff8fa3;
   font-size: 0.9rem;
 }
@@ -1517,7 +1518,7 @@ button:focus-visible {
 
 .createRecipeCancelBtn {
   padding: 0.75rem 1.25rem;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.9);
@@ -1541,6 +1542,14 @@ button:focus-visible {
 :root[data-theme="light"] .createRecipeSection {
   background: rgba(15, 23, 42, 0.04);
   border-color: rgba(15, 23, 42, 0.10);
+}
+
+:root[data-theme="light"] .createRecipeIngredientsTable {
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+:root[data-theme="light"] .createRecipeEmptyIngredients {
+  border-color: rgba(15, 23, 42, 0.12);
 }
 
 :root[data-theme="light"] .createRecipeSectionTitle {
