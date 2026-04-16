@@ -324,7 +324,7 @@ async def create_workout(huid: float, uname: str, nw: NewWorkout):
 
             return res.get_data()
 
-@app.post("/api/get-user-recipe")
+@app.get("/api/get-user-recipe")
 async def get_user_recipe(huid: float, uname: str):
     res = Result()
 
