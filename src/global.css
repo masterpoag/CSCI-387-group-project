@@ -1273,6 +1273,382 @@ button:focus-visible {
   background: rgba(241, 245, 249, 0.9);
 }
 
+/* Create Recipe Form Improvements */
+.createRecipeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.createRecipeSection {
+  padding: 1.25rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.createRecipeSectionTitle {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: -0.01em;
+}
+
+.createRecipeField {
+  margin-bottom: 1rem;
+}
+
+.createRecipeField:last-child {
+  margin-bottom: 0;
+}
+
+.createRecipeLabel {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.createRecipeTextarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.createRecipeInstructions {
+  min-height: 120px;
+}
+
+/* Toggle Switch */
+.createRecipeToggle {
+  margin-top: 0.5rem;
+}
+
+.createRecipeToggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.createRecipeCheckbox {
+  display: none;
+}
+
+.createRecipeToggleSwitch {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  transition: background 200ms ease;
+  flex-shrink: 0;
+}
+
+.createRecipeToggleSwitch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  transition: transform 200ms ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.createRecipeCheckbox:checked + .createRecipeToggleSwitch {
+  background: linear-gradient(135deg, #a78bfa, #22d3ee);
+}
+
+.createRecipeCheckbox:checked + .createRecipeToggleSwitch::after {
+  transform: translateX(22px);
+}
+
+.createRecipeToggleText {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Food Selectors */
+.createRecipeFoodSelectors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.createRecipeSelector {
+  min-width: 0;
+}
+
+/* Ingredients Table */
+.createRecipeIngredientsTable {
+  margin-top: 1rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.createRecipeTableHeader {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.createRecipeTableRow {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.95rem;
+  transition: background 150ms ease;
+}
+
+.createRecipeTableRow:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tableColName {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tableColQty,
+.tableColCal,
+.tableColUnit {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+}
+
+.tableColCal {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.createRecipeQtyInput {
+  width: 100%;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-size: 0.9rem !important;
+  min-height: unset !important;
+  text-align: center;
+}
+
+.createRecipeRemoveBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 77, 109, 0.3);
+  background: rgba(255, 77, 109, 0.1);
+  color: #ff6b8a;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+  padding: 0;
+}
+
+.createRecipeRemoveBtn:hover {
+  background: rgba(255, 77, 109, 0.25);
+  border-color: rgba(255, 77, 109, 0.5);
+  transform: scale(1.05);
+}
+
+.createRecipeEmptyIngredients {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+}
+
+/* Error Display */
+.createRecipeError {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: rgba(255, 77, 109, 0.12);
+  border: 1px solid rgba(255, 77, 109, 0.35);
+  border-radius: 12px;
+  color: #ff8fa3;
+  font-size: 0.9rem;
+}
+
+.createRecipeErrorIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: rgba(255, 77, 109, 0.25);
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* Actions */
+.createRecipeActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.createRecipeCancelBtn {
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.createRecipeCancelBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.createRecipeSubmitBtn {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* Light mode styles */
+:root[data-theme="light"] .createRecipeSection {
+  background: rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.10);
+}
+
+:root[data-theme="light"] .createRecipeSectionTitle {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .createRecipeLabel {
+  color: #475569;
+}
+
+:root[data-theme="light"] .createRecipeToggleSwitch {
+  background: rgba(15, 23, 42, 0.15);
+}
+
+:root[data-theme="light"] .createRecipeToggleSwitch::after {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+:root[data-theme="light"] .createRecipeToggleText {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .createRecipeTableHeader {
+  background: rgba(15, 23, 42, 0.06);
+  color: #64748b;
+}
+
+:root[data-theme="light"] .createRecipeTableRow {
+  border-top-color: rgba(15, 23, 42, 0.08);
+}
+
+:root[data-theme="light"] .createRecipeTableRow:hover {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+:root[data-theme="light"] .tableColName {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .tableColQty,
+:root[data-theme="light"] .tableColCal,
+:root[data-theme="light"] .tableColUnit {
+  color: #475569;
+}
+
+:root[data-theme="light"] .createRecipeRemoveBtn {
+  border-color: rgba(220, 38, 38, 0.3);
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+:root[data-theme="light"] .createRecipeRemoveBtn:hover {
+  background: rgba(220, 38, 38, 0.15);
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
+:root[data-theme="light"] .createRecipeEmptyIngredients {
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #64748b;
+}
+
+:root[data-theme="light"] .createRecipeError {
+  background: rgba(220, 38, 38, 0.08);
+  border-color: rgba(220, 38, 38, 0.25);
+  color: #dc2626;
+}
+
+:root[data-theme="light"] .createRecipeErrorIcon {
+  background: rgba(220, 38, 38, 0.15);
+}
+
+:root[data-theme="light"] .createRecipeCancelBtn {
+  border-color: rgba(15, 23, 42, 0.18);
+  background: rgba(15, 23, 42, 0.04);
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .createRecipeCancelBtn:hover {
+  background: rgba(15, 23, 42, 0.08);
+  border-color: rgba(15, 23, 42, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .createRecipeFoodSelectors {
+    grid-template-columns: 1fr;
+  }
+
+  .createRecipeTableHeader,
+  .createRecipeTableRow {
+    grid-template-columns: 1.5fr 1fr 1fr 32px;
+  }
+
+  .tableColUnit {
+    display: none;
+  }
+
+  .createRecipeActions {
+    flex-direction: column;
+  }
+
+  .createRecipeCancelBtn,
+  .createRecipeSubmitBtn {
+    width: 100%;
+  }
+}
+
 /* Recipe cards */
 .recipeCard {
   display: flex;

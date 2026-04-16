@@ -26,6 +26,7 @@ export default function RecipePage() {
 
   const [newFoodModalOpen, setNewFoodModalOpen] = useState(false);
   const [createRecipeModalOpen, setCreateRecipeModalOpen] = useState(false);
+  const [formError, setFormError] = useState("");
 
   const [recipeFoods, setRecipeFoods] = useState([]);
 
@@ -160,6 +161,18 @@ export default function RecipePage() {
   }
 
   async function handleCreateRecipe() {
+    setFormError("");
+
+    if (!newRecipe.rname.trim()) {
+      setFormError("Recipe name is required");
+      return;
+    }
+
+    if (recipeFoods.length === 0) {
+      setFormError("At least one food item is required");
+      return;
+    }
+
     try {
       const payload = buildCreateRecipePayload();
 
@@ -177,12 +190,19 @@ export default function RecipePage() {
       if (json?.Result === "Success") {
         setCreateRecipeModalOpen(false);
         setRecipeFoods([]);
+        setNewRecipe({ rname: "", desc: "", instruct: "", isPublic: true });
+        setSelectedUnit(null);
+        setSelectedFood(null);
       } else {
-        console.error(json?.Message);
+        setFormError(json?.Message || "Failed to create recipe");
       }
     } catch (err) {
-      console.error(err);
+      setFormError("Network error. Please try again.");
     }
+  }
+
+  function handleRemoveFood(index) {
+    setRecipeFoods((prev) => prev.filter((_, i) => i !== index));
   }
 
   // ================= UI =================
@@ -246,7 +266,7 @@ export default function RecipePage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="createRecipeModalHeader">
-              <h2 className="createRecipeModalTitle">Create recipe</h2>
+              <h2 className="createRecipeModalTitle">Create New Recipe</h2>
 
               <button
                 className="createRecipeModalClose"
@@ -256,77 +276,164 @@ export default function RecipePage() {
               </button>
             </div>
 
-            <section className="foodIngredientPanel foodIngredientPanelInModal">
-              <h3 className="foodIngredientTitle">Foods & units</h3>
-
-              {foodsError && (
-                <p className="foodIngredientWarning">{foodsError}</p>
-              )}
-
-              <input
-                className="foodSearchInput"
-                placeholder="Recipe name"
-                value={newRecipe.rname}
-                onChange={(e) =>
-                  setNewRecipe({ ...newRecipe, rname: e.target.value })
-                }
-              />
-
-              <input
-                className="foodSearchInput"
-                placeholder="Description"
-                value={newRecipe.desc}
-                onChange={(e) =>
-                  setNewRecipe({ ...newRecipe, desc: e.target.value })
-                }
-              />
-
-              <textarea
-                className="foodSearchInput"
-                placeholder="Instructions"
-                value={newRecipe.instruct}
-                onChange={(e) =>
-                  setNewRecipe({ ...newRecipe, instruct: e.target.value })
-                }
-              />
-
-              <div className="foodIngredientRow">
-                <SearchableSelect
-                  label="Unit"
-                  options={unitOptions}
-                  value={selectedUnit}
-                  onChange={(v) => setSelectedUnit(Number(v))}
-                />
-
-                <SearchableSelect
-                  label="Food"
-                  options={foodOptions}
-                  value={selectedFood}
-                  onChange={handleFoodChange}
-                />
-              </div>
-
-              {/* INGREDIENT LIST */}
-              {recipeFoods.map((food, index) => (
-                <div key={index} className="foodIngredientRow">
-                  <span>{food.fname}</span>
-
+            <div className="createRecipeForm">
+              {/* Recipe Info Section */}
+              <section className="createRecipeSection">
+                <h3 className="createRecipeSectionTitle">Recipe Details</h3>
+                
+                <div className="createRecipeField">
+                  <label className="createRecipeLabel">Recipe Name *</label>
                   <input
                     className="foodSearchInput"
-                    type="number"
-                    value={food.qty}
-                    onChange={(e) => updateQty(index, e.target.value)}
+                    placeholder="e.g., Chicken Stir Fry"
+                    value={newRecipe.rname}
+                    onChange={(e) =>
+                      setNewRecipe({ ...newRecipe, rname: e.target.value })
+                    }
                   />
                 </div>
-              ))}
 
-              <button
-                className="foodCreateRecipeBtn"
-                onClick={handleCreateRecipe}
-              >
-                Save Recipe
-              </button>
-            </section>
+                <div className="createRecipeField">
+                  <label className="createRecipeLabel">Description</label>
+                  <textarea
+                    className="foodSearchInput createRecipeTextarea"
+                    placeholder="A brief description of your recipe..."
+                    value={newRecipe.desc}
+                    onChange={(e) =>
+                      setNewRecipe({ ...newRecipe, desc: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="createRecipeField">
+                  <label className="createRecipeLabel">Instructions</label>
+                  <textarea
+                    className="foodSearchInput createRecipeTextarea createRecipeInstructions"
+                    placeholder="Step by step cooking instructions..."
+                    value={newRecipe.instruct}
+                    onChange={(e) =>
+                      setNewRecipe({ ...newRecipe, instruct: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="createRecipeToggle">
+                  <label className="createRecipeToggleLabel">
+                    <input
+                      type="checkbox"
+                      checked={newRecipe.isPublic}
+                      onChange={(e) =>
+                        setNewRecipe({ ...newRecipe, isPublic: e.target.checked })
+                      }
+                      className="createRecipeCheckbox"
+                    />
+                    <span className="createRecipeToggleSwitch"></span>
+                    <span className="createRecipeToggleText">
+                      {newRecipe.isPublic ? "Public Recipe" : "Private Recipe"}
+                    </span>
+                  </label>
+                </div>
+              </section>
+
+              {/* Foods Section */}
+              <section className="createRecipeSection">
+                <h3 className="createRecipeSectionTitle">Ingredients</h3>
+
+                <div className="createRecipeFoodSelectors">
+                  <div className="createRecipeSelector">
+                    <SearchableSelect
+                      label="Unit"
+                      options={unitOptions}
+                      value={selectedUnit}
+                      onChange={(v) => setSelectedUnit(Number(v))}
+                      placeholder="Select unit..."
+                    />
+                  </div>
+                  <div className="createRecipeSelector">
+                    <SearchableSelect
+                      label="Food"
+                      options={foodOptions}
+                      value={selectedFood}
+                      onChange={handleFoodChange}
+                      placeholder="Search foods..."
+                      disabled={selectedUnit === null}
+                    />
+                  </div>
+                </div>
+
+                {/* Ingredient Table */}
+                {recipeFoods.length > 0 && (
+                  <div className="createRecipeIngredientsTable">
+                    <div className="createRecipeTableHeader">
+                      <span className="tableColName">Food</span>
+                      <span className="tableColQty">Quantity</span>
+                      <span className="tableColCal">Calories</span>
+                      <span className="tableColUnit">Unit</span>
+                      <span className="tableColAction"></span>
+                    </div>
+                    {recipeFoods.map((food, index) => (
+                      <div key={index} className="createRecipeTableRow">
+                        <span className="tableColName">{food.fname}</span>
+                        <input
+                          className="tableColQty createRecipeQtyInput"
+                          type="number"
+                          value={food.qty}
+                          min="0"
+                          step="0.1"
+                          onChange={(e) => updateQty(index, e.target.value)}
+                        />
+                        <span className="tableColCal">
+                          {food.cal} cal
+                        </span>
+                        <span className="tableColUnit">
+                          {IMPERIAL_BASE_UNITS.find(u => u.value === food.base_measurement)?.label}
+                        </span>
+                        <button
+                          type="button"
+                          className="tableColAction createRecipeRemoveBtn"
+                          onClick={() => handleRemoveFood(index)}
+                          aria-label={`Remove ${food.fname}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {recipeFoods.length === 0 && (
+                  <div className="createRecipeEmptyIngredients">
+                    No ingredients added yet. Select a unit and food above to add ingredients.
+                  </div>
+                )}
+              </section>
+
+              {/* Error Display */}
+              {formError && (
+                <div className="createRecipeError">
+                  <span className="createRecipeErrorIcon">!</span>
+                  {formError}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="createRecipeActions">
+                <button
+                  type="button"
+                  className="createRecipeCancelBtn"
+                  onClick={() => setCreateRecipeModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="foodCreateRecipeBtn createRecipeSubmitBtn"
+                  onClick={handleCreateRecipe}
+                >
+                  Create Recipe
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
