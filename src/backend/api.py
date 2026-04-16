@@ -212,7 +212,12 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
             # Gather each fid for each food
             fids = [] 
             for f in foods:
-                if f.isNew:
+                stmt = "SELECT name FROM Food WHERE name = %s" 
+                cursor.execute(stmt, [f.fname])
+                
+                result = cursor.fetchall()
+                
+                if f.isNew and len(result) == 0:
                     await add_food(f, cursor)
 
                 stmt = "SELECT fid FROM Food WHERE name = %s"
