@@ -11,8 +11,7 @@ const IMPERIAL_BASE_UNITS = [
   { value: 2, label: "Cup" },
   { value: 3, label: "Teaspoon (tsp)" },
 ];
-const huid = localStorage.getItem("token");
-const uname = localStorage.getItem("username");
+
 
 const NEW_FOOD_VALUE = "__new_food__";
 
@@ -41,23 +40,33 @@ export default function RecipePage() {
 
   // ================= LOAD RECIPES =================
   useEffect(() => {
-    async function loadRecipes() {
-      try {
-        const res = await fetch(`${API_BASE}/api/get-public-recipe`);
-        const json = await res.json();
+      async function loadRecipes() {
+        try {
+          const headers = {
+            "Content-Type": "application/json",
+          };
 
-        if (json?.Result === "Success") {
-          setRecipes(json.Data ?? []);
-        } else {
-          setFoodsError(json?.Message || "Failed to load recipes");
+          const [publicRes, userRes] = await Promise.all([
+            fetch(`${API_BASE}/api/get-public-recipe`, { headers }),
+            fetch(`${API_BASE}/api/get-user-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`, { headers }),
+          ]);
+
+          const publicJson = await publicRes.json();
+          const userJson = await userRes.json();
+          console.log("Public recipes response:", publicJson);
+          console.log("User recipes response:", userJson);
+          const publicRecipes = publicJson?.Data ?? [];
+          const userRecipes = userJson?.Data ?? [];
+
+          const allRecipes = [...userRecipes, ...publicRecipes];
+          setRecipes(allRecipes);
+        } catch {
+          setFoodsError("Network error");
         }
-      } catch {
-        setFoodsError("Network error");
       }
-    }
 
-    loadRecipes();
-  }, []);
+      loadRecipes();
+    }, []);
 
   // ================= FILTER =================
   const filteredRecipes = useMemo(() => {
@@ -178,8 +187,10 @@ export default function RecipePage() {
     try {
       const payload = buildCreateRecipePayload();
 
+      console.log("Creating recipe with payload:", payload);
+
       const res = await fetch(
-        `${API_BASE}/api/create-recipe?huid=1&uname=joey`,
+        `${API_BASE}/api/create-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
