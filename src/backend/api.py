@@ -146,11 +146,11 @@ async def auth_admin(uid: int) -> int | dict:
 
             return uid
         except mysql.connector.Error as err:
-            await data_base_err(err, connection)
+            return await data_base_err(err, connection)
             
 # API Endpoints
-@app.get("/api/admin/get-all-user")
-async def get_all_user(huid: float, uname: str, pswd: str):
+@app.get("/api/admin/delete-user")
+async def delete_user(huid: float, uname: str, deleted_uid: int):
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:
@@ -158,7 +158,29 @@ async def get_all_user(huid: float, uname: str, pswd: str):
             if type(auth) != int:
                 return auth
             
-            uid = auth_admin(auth)
+            uid = await auth_admin(auth)
+
+            if type(uid) != int:
+                return uid
+            
+            stmt = "DELETE FROM User WHERE uid = %s AND uid != %s"
+            cursor.execute(stmt, [deleted_uid, uid])
+
+            connection.commit()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+@app.get("/api/admin/get-all-user")
+async def get_all_user(huid: float, uname: str):
+    res = Result()
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+            
+            uid = await auth_admin(auth)
             
             if type(uid) != int:
                 return uid
