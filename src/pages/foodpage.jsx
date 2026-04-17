@@ -40,34 +40,33 @@ export default function RecipePage() {
   });
 
   // ================= LOAD RECIPES =================
+  async function loadRecipes() {
+    try {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+
+      const [publicRes, userRes] = await Promise.all([
+        fetch(`${API_BASE}/api/get-public-recipe`, { headers }),
+        fetch(`${API_BASE}/api/get-user-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`, { headers }),
+      ]);
+
+      const publicJson = await publicRes.json();
+      const userJson = await userRes.json();
+
+      const publicRecipes = publicJson?.Data ?? [];
+      const userRecipes = userJson?.Data ?? [];
+
+      const allRecipes = [...userRecipes, ...publicRecipes];
+      setRecipes(allRecipes);
+    } catch {
+      setFoodsError("Network error");
+    }
+  }
+
   useEffect(() => {
-      async function loadRecipes() {
-        try {
-          const headers = {
-            "Content-Type": "application/json",
-          };
-
-          const [publicRes, userRes] = await Promise.all([
-            fetch(`${API_BASE}/api/get-public-recipe`, { headers }),
-            fetch(`${API_BASE}/api/get-user-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`, { headers }),
-          ]);
-
-          const publicJson = await publicRes.json();
-          const userJson = await userRes.json();
-          console.log("Public recipes response:", publicJson);
-          console.log("User recipes response:", userJson);
-          const publicRecipes = publicJson?.Data ?? [];
-          const userRecipes = userJson?.Data ?? [];
-
-          const allRecipes = [...userRecipes, ...publicRecipes];
-          setRecipes(allRecipes);
-        } catch {
-          setFoodsError("Network error");
-        }
-      }
-
-      loadRecipes();
-    }, []);
+    loadRecipes();
+  }, []);
 
   // ================= FILTER =================
   const filteredRecipes = useMemo(() => {
@@ -221,6 +220,7 @@ export default function RecipePage() {
         setNewRecipe({ rname: "", desc: "", instruct: "", isPublic: false });
         setSelectedUnit(null);
         setSelectedFood(null);
+        loadRecipes();
       } else {
         setFormError(json?.Message || "Failed to create recipe");
       }
