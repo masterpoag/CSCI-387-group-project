@@ -1,51 +1,48 @@
 import React from "react";
 
 
-// Refactored my code from my cocktail website for this project. This should work for what we need it for.
-
 /**
  * Schema
- * @param {Object} recipe
- * @param {Array} ingredients - Array of objects containing { name, qty, cal }
+ * @param {Object} workout
+ * @param {Array} exercises - Array of objects containing { name, sets, reps }
  */
 
 
-export default function WorkoutCard({ recipe, ingredients = [] }) {
+export default function WorkoutCard({ workout, exercises = [] }) {
   return (
     <article className="recipeCard">
       <div className="recipeCardContent">
         <div className="recipeCardTop">
-          <h2 className="recipeCardTitle">{recipe.name}</h2>
+          <h2 className="recipeCardTitle">{workout.name}</h2>
         </div>
 
-        {recipe.desc && (
+        {workout.desc && (
           <p className="recipeCardDesc">
-            {recipe.desc}
+            {workout.desc}
           </p>
         )}
 
         <hr className="recipeCardDivider" />
 
         <div className="recipeCardSection">
-          <strong className="recipeCardLabel">Steps:</strong>
+          <strong className="recipeCardLabel">Exercises:</strong>
           <ul className="recipeCardList">
-            {ingredients.map((item, idx) => (
+            {exercises.map((item, idx) => (
               <li key={idx}>
-                <strong>{parseInt(item.qty)}</strong> {item.name} 
-                <span className="recipeCardCalories"> ({item.cal} cal)</span>
+                <strong>{item.sets}</strong> sets x <strong>{item.reps}</strong> reps of {item.name}
               </li>
             ))}
           </ul>
         </div>
 
-        {recipe.instruct && (
+        {workout.instruct && (
           <div className="recipeCardSection recipeCardMethod">
-            <strong>Method:</strong>
-            <p className="recipeCardMethodText">{recipe.instruct}</p>
+            <strong>Instructions:</strong>
+            <p className="recipeCardMethodText">{workout.instruct}</p>
           </div>
         )}
-        <span className={`recipeCardBadge ${recipe.isPublic ? "isPublic" : "isPrivate"}`}>
-          {recipe.isPublic ? "Global" : "Personal"}
+        <span className={`recipeCardBadge ${workout.isPublic ? "isPublic" : "isPrivate"}`}>
+          {workout.isPublic ? "Public" : "Private"}
         </span>
       </div>
     </article>
