@@ -209,6 +209,7 @@ export default function WorkoutPage() {
 
     try {
       const payload = buildCreateWorkoutPayload();
+      console.log("Creating workout with payload:", payload);
 
       const res = await fetch(
         `${API_BASE}/api/create-workout?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
