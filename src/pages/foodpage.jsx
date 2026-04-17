@@ -3,6 +3,13 @@ import RecipeCard from "./cards/RecipeCard";
 import SearchableSelect from "../components/SearchableSelect";
 import NewFoodModal from "../components/NewFoodModal";
 
+
+// TODO Add: allow admins to delete public recipes.
+
+//TODO STRECH GOALS:
+// - Allow users to delete their recipes
+
+
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
 const IMPERIAL_BASE_UNITS = [

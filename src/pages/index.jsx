@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+//TODO Add admin page to allow for setting account types for users.
+
 export default function HomePage({/* Add Vars here for passthrough*/}) {
   const featureItems = [
     {

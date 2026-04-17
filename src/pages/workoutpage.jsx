@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import WorkoutCard from "./cards/WorkoutCard";
 
+
+// TODO ADD: Need API implemented to create workouts.
+// TODO Add: allow admins to delete public workouts.
+
+//TODO STRECH GOALS:
+// - Allow users to delete their workouts
+
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
 const EXERCISE_TYPES = [
