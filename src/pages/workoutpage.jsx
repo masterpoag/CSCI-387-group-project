@@ -121,9 +121,7 @@ export default function WorkoutPage() {
       ...prev,
       {
         name: val,
-        sets: 3,
         reps: 10,
-        duration: 0,
         exercise_type: selectedExerciseType,
       },
     ]);
@@ -142,9 +140,7 @@ export default function WorkoutPage() {
       ...prev,
       {
         name,
-        sets: 3,
         reps: 10,
-        duration: 0,
         exercise_type: selectedExerciseType,
       },
     ]);
@@ -414,8 +410,7 @@ export default function WorkoutPage() {
                   <div className="createRecipeIngredientsTable">
                     <div className="createRecipeTableHeader">
                       <span className="tableColName">Exercise</span>
-                      <span className="tableColQty">Sets</span>
-                      <span className="tableColCal">Reps</span>
+                      <span className="tableColQty">Reps</span>
                       <span className="tableColUnit">Type</span>
                       <span className="tableColAction"></span>
                     </div>
@@ -425,15 +420,8 @@ export default function WorkoutPage() {
                         <input
                           className="tableColQty createRecipeQtyInput"
                           type="number"
-                          value={exercise.sets}
-                          min="1"
-                          onChange={(e) => updateExerciseField(index, "sets", Number(e.target.value))}
-                        />
-                        <input
-                          className="tableColCal createRecipeQtyInput"
-                          type="number"
                           value={exercise.reps}
-                          min="0"
+                          min="1"
                           onChange={(e) => updateExerciseField(index, "reps", Number(e.target.value))}
                         />
                         <span className="tableColUnit">

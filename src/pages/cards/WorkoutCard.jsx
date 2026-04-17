@@ -29,7 +29,7 @@ export default function WorkoutCard({ workout, exercises = [] }) {
           <ul className="recipeCardList">
             {exercises.map((item, idx) => (
               <li key={idx}>
-                <strong>{item.sets}</strong> sets x <strong>{item.reps}</strong> reps of {item.name}
+                <strong>{item.reps}</strong> reps of {item.name}
               </li>
             ))}
           </ul>
