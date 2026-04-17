@@ -13,6 +13,11 @@ class NewRecipe(BaseModel):
     instruct: str
     isPublic: bool
 
+class NewWorkout(BaseModel):
+    instructions: str
+    cal: int
+    isPublic: bool
+
 class Food(BaseModel):
     fname: str
     qty: float

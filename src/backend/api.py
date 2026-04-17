@@ -35,11 +35,21 @@ class Result():
         return self.data
 
 # Helper functions
+async def data_base_err(e: mysql.connector.Error, con) -> dict:
+    res = Result()
+    
+    res.data["Result"] = "Failed"
+    res.data["Message"] = "Database threw an error, check API logs"
+    await log(f"Database threw an error!\n\t{e}")
+    con.rollback()
+
+    return res.get_data()
+    
 async def add_food(food: Food, cursor: MySQLCursorAbstract):
     stmt = "INSERT INTO Food (cal, name, base_measure) VALUES (%s, %s, %s)"
+    await log(f"INSERT INTO Food (cal, name, base_measure) VALUES ({food.cal}, {food.fname.lower()}, {food.base_measurement})")
     cursor.execute(stmt, [food.cal, food.fname.lower(), food.base_measurement])
-    
-     
+         
 async def log(msg: str) -> None:
     # It's rather simple now, but the idea is that I could expand it later if need be
     print("[API.PY] " + msg)
@@ -115,8 +125,103 @@ async def auth_user(huid: float, uname: str) -> int | dict:
         connection.commit()
         
         return uid 
+    
+async def auth_admin(uid: int) -> int | dict:
+    res = Result()
+    
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT * FROM Admin WHERE User_uid = %s"
+            
+            cursor.execute(stmt, [uid])
+            
+            result = cursor.fetchall()
+            
+            if len(result) != 1:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "UID Not in Admin table"
+                await log(f"UID {uid} not in Admin table")
+                
+                return res.get_data()
 
+            return uid
+        except mysql.connector.Error as err:
+            await data_base_err(err, connection)
+            
 # API Endpoints
+@app.get("/api/admin/get-all-user")
+async def get_all_user(huid: float, uname: str, pswd: str):
+    res = Result()
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+            
+            uid = auth_admin(auth)
+            
+            if type(uid) != int:
+                return uid
+            
+            # uid is admin's uid
+            
+            stmt = "SELECT * FROM User"
+            
+            cursor.execute(stmt)
+            
+            result = cursor.fetchall()
+            
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Returning all users"
+            res.data["Data"] = result
+            
+            await log("Returning all users")
+            
+            return res.get_data()
+            
+            # Check if UID is admin
+        except mysql.connector.Error as err:
+            await data_base_err(err, connection)
+
+@app.post("/api/create-food")
+async def create_food(nf: Food):
+    '''
+    Check if food exists,
+    If it doesn't insert. 
+    '''
+
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT name FROM Food WHERE name = %s"
+
+            cursor.execute(stmt, [nf.fname])
+
+            names = cursor.fetchall()
+
+            if len(names) != 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Food already exists in database!"
+                await log("Error: Food already exists in database!")
+
+                return res.get_data()
+
+            stmt = "INSERT INTO Food (cal, base_measure, name) VALUES (%s, %s, %s)"
+
+            cursor.execute(stmt, [nf.cal, nf.base_measurement, nf.fname])
+
+            connection.commit()
+            await log(f"Food {nf.fname} successfully added.")
+        except mysql.connector.Error as err:
+            connection.rollback()
+            await log(f"Database threw an error!\n\t{err}")
+
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+
+            return res.get_data() 
+
 @app.post("/api/create-recipe")
 async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Food]):
     """
@@ -172,7 +277,12 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
             # Gather each fid for each food
             fids = [] 
             for f in foods:
-                if f.isNew:
+                stmt = "SELECT name FROM Food WHERE name = %s" 
+                cursor.execute(stmt, [f.fname])
+                
+                result = cursor.fetchall()
+                
+                if f.isNew and len(result) == 0:
                     await add_food(f, cursor)
 
                 stmt = "SELECT fid FROM Food WHERE name = %s"
@@ -217,7 +327,69 @@ async def create_recipe(huid: float, uname: str,  nr: NewRecipe, foods: list[Foo
 
             return res.get_data()  
 
-@app.post("/api/get-user-recipe")
+@app.post("/api/create-workout")
+async def create_workout(huid: float, uname: str, nw: NewWorkout):
+    """
+    Creates a new workout for the authenticated user.
+
+    Requires the user to be logged in via huid and uname.
+    Prevents duplicate workouts (same instructions for the same user).
+    """
+
+    '''
+    Dev Notes:
+    1. Check if the user is logged in (does hashed uid match corresponding uname?)
+    2. Check if workout with the same instructions already exists for that user
+    3. Add workout
+    '''
+    res = Result()
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = auth
+
+            # Start transaction
+            connection.start_transaction()
+
+            # Check if workout already exists for this user
+            stmt = "SELECT wid FROM Workout WHERE User_uid = %s AND instructions = %s"
+            cursor.execute(stmt, [uid, nw.instructions])
+
+            result = cursor.fetchall()
+
+            if len(result) != 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Workout with those instructions already exists for that user!"
+                await log("Workout with those instructions already exists for that user!")
+                connection.rollback()
+
+                return res.get_data()
+
+            # Add Workout
+            stmt = "INSERT INTO Workout (instructions, cal, isPublic, User_uid) VALUES (%s, %s, %s, %s)"
+            await log(f"INSERT INTO Workout (instructions, cal, isPublic, User_uid) VALUES ({nw.instructions}, {nw.cal}, {nw.isPublic}, {uid})")
+            cursor.execute(stmt, [nw.instructions, nw.cal, nw.isPublic, uid])
+
+            # End Transaction
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Workout successfully added."
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs"
+            await log(f"Database threw an error!\n\t{err}")
+            connection.rollback()
+
+            return res.get_data()
+
+@app.get("/api/get-user-recipe")
 async def get_user_recipe(huid: float, uname: str):
     res = Result()
 
@@ -293,7 +465,6 @@ async def get_foods():
             connection.rollback()
 
             return res.get_data()
-
 
 @app.get("/api/get-public-recipe")
 async def get_public_recipe():
@@ -374,7 +545,7 @@ async def get_public_workout():
 
             return res.get_data()
 
-@app.post("/api/get-user-workout")
+@app.get("/api/get-user-workout")
 async def get_user_workout(huid: float, uname: str):
     res = Result()
 
@@ -425,17 +596,17 @@ async def register(hasCG: bool, nu: NewUser):
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:       
-            if len(nu.uname) > 30:
+            if len(nu.uname) > 20:
                 res.data["Result"] = "Failed"
-                res.data["Message"] = "uname is greater than 30"
-                await log(f"len(nu.umane) ({len(nu.uname)}) is greater than 30!")
+                res.data["Message"] = "username is greater than 20"
+                await log(f"len(nu.umane) ({len(nu.uname)}) is greater than 20!")
 
                 return res.get_data()
    
             isSafe = await safe(nu.uname)
             if not isSafe:
                 res.data["Result"] = "Failed"
-                res.data["Message"] = "uname contains banned characters"
+                res.data["Message"] = "username contains banned characters"
                 await log(f"{nu.uname} contains banned characters")
 
                 return res.get_data()
@@ -446,8 +617,8 @@ async def register(hasCG: bool, nu: NewUser):
 
             if len(result) != 0:
                 res.data["Result"] = "Failed"
-                res.data["Message"] = "Username already exsists in database"
-                await log(f"{nu.uname} already exsists in database!")
+                res.data["Message"] = "Username already exists in database"
+                await log(f"{nu.uname} already exists in database!")
 
                 return res.get_data()
 
@@ -485,7 +656,6 @@ async def register(hasCG: bool, nu: NewUser):
 
             return res.get_data()
 
-
 @app.get("/api/get-food")
 async def get_food():
     res = Result()
@@ -516,7 +686,42 @@ async def get_food():
             await log(f"Database error:\n\t{err}")
 
             return res.get_data() 
+
+@app.get("/api/get-auth-level")
+async def get_auth_level(huid: float):
+    res = Result()
+    
+    with db.DBConnect() as (connection, cursor):
+        try:
+            uid = await calc_UID(huid)
+            
+            if uid == -1:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "huid corrupted"
+                await log("Passed hashed uid returned -1")
+
+                return res.get_data()
+            
+            stmt = "SELECT account_type FROM User WHERE uid = %s"
+            
+            cursor.execute(stmt, [uid])
+            
+            acc_type = cursor.fetchall()
+            
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Fetched account type successfully"
+            res.data["Data"] = acc_type
+            await log(f"Returning account type for uid {uid}")
+
+            return res.get_data()
         
+        except mysql.connector.Error as err:
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Database threw an error, check API logs" 
+            await log(f"Database error:\n\t{err}")
+
+            return res.get_data()  
+      
 @app.get("/api/login")
 async def login(uname: str, upass: str):
     res = Result()
@@ -542,8 +747,9 @@ async def login(uname: str, upass: str):
             result = cursor.fetchall()
 
             if len(result) == 0:
-                res.data["Result"] = "Failed" 
-                res.data["Message"] = "Username does not exsist" 
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Username does not exsist"
+                await log(f"{uname} does not exist in database")
                 return res.get_data()
 
             cursor.execute("SELECT pass, createTime, uid FROM User WHERE uname = %s", [uname]) 
@@ -590,6 +796,7 @@ async def read_root():
     ret = Result()
 
     ret.data["Message"] = "Hi! Hallo! Bonjour!"
+    await log("Hello endpoint called")
 
     return ret.get_data()
 
