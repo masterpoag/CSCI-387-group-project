@@ -28,6 +28,7 @@ export default function RecipePage() {
   const [newFoodModalOpen, setNewFoodModalOpen] = useState(false);
   const [createRecipeModalOpen, setCreateRecipeModalOpen] = useState(false);
   const [formError, setFormError] = useState("");
+  const [accountType, setAccountType] = useState(null);
 
   const [recipeFoods, setRecipeFoods] = useState([]);
 
@@ -35,7 +36,7 @@ export default function RecipePage() {
     rname: "",
     desc: "",
     instruct: "",
-    isPublic: true,
+    isPublic: false,
   });
 
   // ================= LOAD RECIPES =================
@@ -217,7 +218,7 @@ export default function RecipePage() {
       if (json?.Result === "Success") {
         setCreateRecipeModalOpen(false);
         setRecipeFoods([]);
-        setNewRecipe({ rname: "", desc: "", instruct: "", isPublic: true });
+        setNewRecipe({ rname: "", desc: "", instruct: "", isPublic: false });
         setSelectedUnit(null);
         setSelectedFood(null);
       } else {
@@ -230,6 +231,40 @@ export default function RecipePage() {
 
   function handleRemoveFood(index) {
     setRecipeFoods((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function loadAccountType() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setAccountType(null);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/get-auth-level?huid=${token}`);
+      const json = await res.json();
+      if (json?.Result === "Success" && json.Data?.[0]?.account_type !== undefined) {
+        setAccountType(json.Data[0].account_type);
+      } else {
+        setAccountType(null);
+      }
+    } catch {
+      setAccountType(null);
+    }
+  }
+
+  async function handleCreateRecipeClick() {
+
+
+    if (!localStorage.getItem("username") || !localStorage.getItem("token")) {
+      const confirmed = window.confirm("You need to log in to create a recipe. Would you like to log in now?");
+      if (confirmed) {
+        window.location.href = "/~group3sp26/login";
+      }
+      return;
+    }
+
+    await loadAccountType();
+    setCreateRecipeModalOpen(true);
   }
 
   // ================= UI =================
@@ -344,22 +379,24 @@ export default function RecipePage() {
                   />
                 </div>
 
-                <div className="createRecipeToggle">
-                  <label className="createRecipeToggleLabel">
-                    <input
-                      type="checkbox"
-                      checked={newRecipe.isPublic}
-                      onChange={(e) =>
-                        setNewRecipe({ ...newRecipe, isPublic: e.target.checked })
-                      }
-                      className="createRecipeCheckbox"
-                    />
-                    <span className="createRecipeToggleSwitch"></span>
-                    <span className="createRecipeToggleText">
-                      {newRecipe.isPublic ? "Public Recipe" : "Private Recipe"}
-                    </span>
-                  </label>
-                </div>
+                {(accountType === 0 || accountType === 2) && (
+                  <div className="createRecipeToggle">
+                    <label className="createRecipeToggleLabel">
+                      <input
+                        type="checkbox"
+                        checked={newRecipe.isPublic}
+                        onChange={(e) =>
+                          setNewRecipe({ ...newRecipe, isPublic: e.target.checked })
+                        }
+                        className="createRecipeCheckbox"
+                      />
+                      <span className="createRecipeToggleSwitch"></span>
+                      <span className="createRecipeToggleText">
+                        {newRecipe.isPublic ? "Public Recipe" : "Private Recipe"}
+                      </span>
+                    </label>
+                  </div>
+                )}
               </section>
 
               {/* Foods Section */}
