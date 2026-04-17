@@ -35,12 +35,21 @@ class Result():
         return self.data
 
 # Helper functions
+async def data_base_err(e: mysql.connector.Error, con) -> dict:
+    res = Result()
+    
+    res.data["Result"] = "Failed"
+    res.data["Message"] = "Database threw an error, check API logs"
+    await log(f"Database threw an error!\n\t{e}")
+    con.rollback()
+
+    return res.get_data()
+    
 async def add_food(food: Food, cursor: MySQLCursorAbstract):
     stmt = "INSERT INTO Food (cal, name, base_measure) VALUES (%s, %s, %s)"
     await log(f"INSERT INTO Food (cal, name, base_measure) VALUES ({food.cal}, {food.fname.lower()}, {food.base_measurement})")
     cursor.execute(stmt, [food.cal, food.fname.lower(), food.base_measurement])
-    
-     
+         
 async def log(msg: str) -> None:
     # It's rather simple now, but the idea is that I could expand it later if need be
     print("[API.PY] " + msg)
@@ -116,8 +125,64 @@ async def auth_user(huid: float, uname: str) -> int | dict:
         connection.commit()
         
         return uid 
+    
+async def auth_admin(uid: int) -> int | dict:
+    res = Result()
+    
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT * FROM Admin WHERE User_uid = %s"
+            
+            cursor.execute(stmt, [uid])
+            
+            result = cursor.fetchall()
+            
+            if len(result) != 1:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "UID Not in Admin table"
+                await log(f"UID {uid} not in Admin table")
+                
+                return res.get_data()
 
+            return uid
+        except mysql.connector.Error as err:
+            await data_base_err(err, connection)
+            
 # API Endpoints
+@app.get("/api/admin/get-all-user")
+async def get_all_user(huid: float, uname: str, pswd: str):
+    res = Result()
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+            
+            uid = auth_admin(auth)
+            
+            if type(uid) != int:
+                return uid
+            
+            # uid is admin's uid
+            
+            stmt = "SELECT * FROM User"
+            
+            cursor.execute(stmt)
+            
+            result = cursor.fetchall()
+            
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Returning all users"
+            res.data["Data"] = result
+            
+            await log("Returning all users")
+            
+            return res.get_data()
+            
+            # Check if UID is admin
+        except mysql.connector.Error as err:
+            await data_base_err(err, connection)
+
 @app.post("/api/create-food")
 async def create_food(nf: Food):
     '''
@@ -480,7 +545,7 @@ async def get_public_workout():
 
             return res.get_data()
 
-@app.post("/api/get-user-workout")
+@app.get("/api/get-user-workout")
 async def get_user_workout(huid: float, uname: str):
     res = Result()
 
