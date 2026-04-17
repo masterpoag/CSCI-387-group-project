@@ -153,7 +153,7 @@ async def auth_admin(uid: int) -> int | dict:
 async def delete_user(huid: float, uname: str, deleted_uid: int):
     res = Result()
     with db.DBConnect() as (connection, cursor):
-        try:
+        try:            
             auth = await auth_user(huid, uname)
             if type(auth) != int:
                 return auth
@@ -162,7 +162,14 @@ async def delete_user(huid: float, uname: str, deleted_uid: int):
 
             if type(uid) != int:
                 return uid
-            
+
+            if uid == deleted_uid:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Cannot delete currently logged-in user"
+                await log("ERR: Cannot delete currently logged in user")
+
+                return res.get_data()
+
             stmt = "DELETE FROM User WHERE uid = %s AND uid != %s"
             cursor.execute(stmt, [deleted_uid, uid])
 
