@@ -177,6 +177,45 @@ async def delete_food(huid: float, uname: str, fname: str):
         except mysql.connector.Error as err:
             return await data_base_err(err, connection)
 
+@app.get("/api/admin/change-user-level")
+async def change_user_level(huid: float, uname: str, changed_uid: int, level: int):
+    res = Result()
+    with db.DBConnect() as (connection, cursor):
+        try:
+            if level not in [1, 2, 3]:
+                # 1 base
+                # 2 Chef
+                # 3 Fitness Instructor
+
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Not a valid account level"
+                
+                return res.get_data()
+
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+            
+            uid = await auth_admin(auth)
+            if type(uid) != int:
+                return uid
+            
+            if uid == changed_uid:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "Cannot changed currently logged-in user"
+                await log("ERR: Cannot changed currently logged in user")
+
+                return res.get_data()
+            
+            stmt = "UPDATE User SET account_type = %s WHERE uid = %s"
+
+            cursor.execute(stmt, [level, changed_uid])
+
+            connection.commit()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
 @app.get("/api/admin/delete-user")
 async def delete_user(huid: float, uname: str, deleted_uid: int):
     res = Result()
