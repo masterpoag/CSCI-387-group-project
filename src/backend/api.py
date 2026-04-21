@@ -147,8 +147,36 @@ async def auth_admin(uid: int) -> int | dict:
             return uid
         except mysql.connector.Error as err:
             return await data_base_err(err, connection)
-            
+
 # API Endpoints
+@app.get("/api/admin/delete-food")
+async def delete_food(huid: float, uname: str, fname: str):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+            
+            uid = await auth_admin(auth)
+
+            if type(uid) != int:
+                return uid
+            
+            stmt = "DELETE FROM Food WHERE name = %s"
+            
+            cursor.execute(stmt, [fname])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"{fname} deleted"
+            await log(f"{fname} deleted")
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
 @app.get("/api/admin/delete-user")
 async def delete_user(huid: float, uname: str, deleted_uid: int):
     res = Result()
@@ -690,7 +718,7 @@ async def get_food():
     res = Result()
     with db.DBConnect() as (connection, cursor): 
         try:
-            stmt = "SELECT name FROM Food"
+            stmt = "SELECT name, cal, base_measure FROM Food"
             cursor.execute(stmt)
             await log(stmt)
 
