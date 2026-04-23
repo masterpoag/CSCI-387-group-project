@@ -196,7 +196,7 @@ async def create_workout(huid: float, uname: str, nw: NewWorkout):
 
             # Add Workout
             stmt = "INSERT INTO Workout (instructions, wname, isPublic, User_uid) VALUES (%s, %s, %s, %s)"
-            await log(f"INSERT INTO Workout (instructions, cal, isPublic, User_uid) VALUES ({nw.instructions}, {nw.name}, {nw.isPublic}, {uid})")
+            await log(f"INSERT INTO Workout (instructions, wname, isPublic, User_uid) VALUES ({nw.instructions}, {nw.name}, {nw.isPublic}, {uid})")
             cursor.execute(stmt, [nw.instructions, nw.name, nw.isPublic, uid])
 
             # End Transaction
@@ -419,7 +419,7 @@ async def get_public_workout():
 
     with db.DBConnect() as (connection, cursor):
         try:
-            stmt = "SELECT Workout.wid, Workout.instructions, Workout.cal, Workout.isPublic, User.uname FROM Workout JOIN User ON Workout.User_uid = User.uid WHERE Workout.isPublic = TRUE"
+            stmt = "SELECT Workout.wid, Workout.instructions, Workout.wname, Workout.isPublic, User.uname FROM Workout JOIN User ON Workout.User_uid = User.uid WHERE Workout.isPublic = TRUE"
             cursor.execute(stmt)
 
             workouts = cursor.fetchall()
@@ -427,9 +427,9 @@ async def get_public_workout():
             workout_list = []
             for workout in workouts:
                 workout_list.append({
+                    "name": workout["wname"], # type: ignore
                     "wid": int(workout["wid"]), # type: ignore
                     "instructions": workout["instructions"], # type: ignore
-                    "cal": workout["cal"], # type: ignore
                     "isPublic": bool(workout["isPublic"]), # type: ignore
                     "owner": workout["uname"], # type: ignore
                 })
@@ -462,7 +462,7 @@ async def get_user_workout(huid: float, uname: str):
 
             uid = auth
 
-            stmt = "SELECT wid, instructions, cal, isPublic FROM Workout WHERE User_uid = %s"
+            stmt = "SELECT * FROM Workout WHERE User_uid = %s"
             cursor.execute(stmt, [uid])
 
             workouts = cursor.fetchall()
@@ -471,8 +471,8 @@ async def get_user_workout(huid: float, uname: str):
             for workout in workouts:
                 workout_list.append({
                     "wid": int(workout["wid"]), # type: ignore
+                    "name": workout["wname"], # type: ignore
                     "instructions": workout["instructions"], # type: ignore
-                    "cal": workout["cal"], # type: ignore
                     "isPublic": bool(workout["isPublic"]), # type: ignore
                 })
 
