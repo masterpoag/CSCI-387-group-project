@@ -14,8 +14,8 @@ class NewRecipe(BaseModel):
     isPublic: bool
 
 class NewWorkout(BaseModel):
+    name: str
     instructions: str
-    cal: int
     isPublic: bool
 
 class Food(BaseModel):

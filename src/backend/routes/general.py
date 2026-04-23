@@ -195,9 +195,9 @@ async def create_workout(huid: float, uname: str, nw: NewWorkout):
                 return res.get_data()
 
             # Add Workout
-            stmt = "INSERT INTO Workout (instructions, cal, isPublic, User_uid) VALUES (%s, %s, %s, %s)"
-            await log(f"INSERT INTO Workout (instructions, cal, isPublic, User_uid) VALUES ({nw.instructions}, {nw.cal}, {nw.isPublic}, {uid})")
-            cursor.execute(stmt, [nw.instructions, nw.cal, nw.isPublic, uid])
+            stmt = "INSERT INTO Workout (instructions, wname, isPublic, User_uid) VALUES (%s, %s, %s, %s)"
+            await log(f"INSERT INTO Workout (instructions, cal, isPublic, User_uid) VALUES ({nw.instructions}, {nw.name}, {nw.isPublic}, {uid})")
+            cursor.execute(stmt, [nw.instructions, nw.name, nw.isPublic, uid])
 
             # End Transaction
             connection.commit()
@@ -263,6 +263,80 @@ async def get_user_recipe(huid: float, uname: str):
             connection.rollback()
 
             return res.get_data()
+
+
+@router.get("/api/delete-recipe")
+async def delete_recipe(huid: float, uname: str, rid: int):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = auth
+
+            stmt = "SELECT rid FROM Recipe WHERE rid = %s AND User_uid = %s"
+            cursor.execute(stmt, [rid, uid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No recipe found with rid {rid} owned by {uname}"
+                await log(f"No recipe with rid {rid} owned by uid {uid}")
+
+                return res.get_data()
+
+            stmt = "DELETE FROM Recipe WHERE rid = %s AND User_uid = %s"
+            cursor.execute(stmt, [rid, uid])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Recipe {rid} deleted"
+            await log(f"Recipe {rid} deleted by owner uid {uid}")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+
+@router.get("/api/delete-workout")
+async def delete_workout(huid: float, uname: str, wid: int):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = auth
+
+            stmt = "SELECT wid FROM Workout WHERE wid = %s AND User_uid = %s"
+            cursor.execute(stmt, [wid, uid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No workout found with wid {wid} owned by {uname}"
+                await log(f"No workout with wid {wid} owned by uid {uid}")
+
+                return res.get_data()
+
+            stmt = "DELETE FROM Workout WHERE wid = %s AND User_uid = %s"
+            cursor.execute(stmt, [wid, uid])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Workout {wid} deleted"
+            await log(f"Workout {wid} deleted by owner uid {uid}")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
 
 
 @router.get("/api/get-foods")

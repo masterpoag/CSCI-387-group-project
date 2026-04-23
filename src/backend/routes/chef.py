@@ -53,6 +53,45 @@ async def get_private_recipes(huid: float, uname: str):
             return await data_base_err(err, connection)
 
 
+@router.get("/delete-recipe")
+async def delete_recipe(huid: float, uname: str, rid: int):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = await auth_chef_or_admin(auth)
+            if type(uid) != int:
+                return uid
+
+            stmt = "SELECT rid FROM Recipe WHERE rid = %s"
+            cursor.execute(stmt, [rid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No recipe found with rid {rid}"
+                await log(f"No recipe found with rid {rid}")
+
+                return res.get_data()
+
+            stmt = "DELETE FROM Recipe WHERE rid = %s"
+            cursor.execute(stmt, [rid])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Recipe {rid} deleted"
+            await log(f"Recipe {rid} deleted by uid {uid}")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+
 @router.get("/set-recipe-publicity")
 async def set_recipe_publicity(huid: float, uname: str, rid: int, isPublic: bool):
     res = Result()

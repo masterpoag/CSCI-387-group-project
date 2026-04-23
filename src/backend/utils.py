@@ -141,6 +141,34 @@ async def auth_chef_or_admin(uid: int) -> int | dict:
             return await data_base_err(err, connection)
 
 
+async def auth_fit_or_admin(uid: int) -> int | dict:
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            stmt = "SELECT account_type FROM User WHERE uid = %s"
+            cursor.execute(stmt, [uid])
+            result = cursor.fetchall()
+
+            if len(result) == 1 and result[0]["account_type"] == 3: # type: ignore
+                return uid
+
+            stmt = "SELECT * FROM Admin WHERE User_uid = %s"
+            cursor.execute(stmt, [uid])
+            result = cursor.fetchall()
+
+            if len(result) == 1:
+                return uid
+
+            res.data["Result"] = "Failed"
+            res.data["Message"] = "Must be a fitness instructor or admin to access this endpoint"
+            await log(f"UID {uid} is not a fitness instructor or admin")
+
+            return res.get_data()
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+
 async def auth_admin(uid: int) -> int | dict:
     res = Result()
 

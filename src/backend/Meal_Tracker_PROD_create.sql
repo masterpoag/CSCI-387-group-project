@@ -53,8 +53,8 @@ CREATE TABLE User (
 CREATE TABLE Workout (
     wid int  NOT NULL AUTO_INCREMENT,
     User_uid int  NOT NULL,
+    wname text NOT NULL,
     instructions text  NOT NULL,
-    cal int  NOT NULL,
     isPublic bool  NOT NULL,
     CONSTRAINT Workout_pk PRIMARY KEY (wid)
 );
