@@ -1925,3 +1925,56 @@ button:focus-visible {
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.95rem;
 }
+.toggleField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toggleSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  display: inline-block;
+}
+
+.toggleSwitch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggleSlider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #ccc;
+  border-radius: 999px;
+  transition: 0.25s;
+}
+
+.toggleSlider::before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  top: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.25s;
+}
+
+.toggleSwitch input:checked + .toggleSlider {
+  background-color: #4caf50; /* or your theme color */
+}
+
+.toggleSwitch input:checked + .toggleSlider::before {
+  transform: translateX(20px);
+}
+
+.toggleText {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
