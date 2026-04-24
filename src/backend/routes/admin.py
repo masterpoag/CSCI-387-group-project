@@ -165,10 +165,116 @@ async def get_all_reports(huid: float, uname: str, tz: str):
 
             reports = cursor.fetchall()
 
+            report_list = []
+            for report in reports:
+                rep_type = report["rep_type"] # type: ignore
+                obj_id = int(report["obj_id"]) # type: ignore
+
+                if rep_type == "rcp":
+                    cursor.execute(
+                        "SELECT Recipe.rid, Recipe.name, Recipe.`desc`, Recipe.instruct, Recipe.isPublic, Recipe.isPublishable, User.uname AS owner FROM Recipe JOIN User ON Recipe.User_uid = User.uid WHERE Recipe.rid = %s",
+                        [obj_id]
+                    )
+                    obj = cursor.fetchone()
+                elif rep_type == "wrk":
+                    cursor.execute(
+                        "SELECT Workout.wid, Workout.wname, Workout.instructions, Workout.isPublic, Workout.isPublishable, User.uname AS owner FROM Workout JOIN User ON Workout.User_uid = User.uid WHERE Workout.wid = %s",
+                        [obj_id]
+                    )
+                    obj = cursor.fetchone()
+                elif rep_type == "fdd":
+                    cursor.execute(
+                        "SELECT fid, name, cal, base_measure FROM Food WHERE fid = %s",
+                        [obj_id]
+                    )
+                    obj = cursor.fetchone()
+                else:
+                    obj = None
+
+                report_list.append({**report, "obj": obj}) # type: ignore
+
             res.data["Result"] = "Success"
             res.data["Message"] = "Returning all reports"
-            res.data["Data"] = reports
-            await log(f"Admin {uname} fetching all reports ({len(reports)} total)")
+            res.data["Data"] = report_list
+            await log(f"Admin {uname} fetching all reports ({len(report_list)} total)")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+
+@router.get("/delete-recipe")
+async def delete_recipe(huid: float, uname: str, rid: int):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = await auth_admin(auth)
+            if type(uid) != int:
+                return uid
+
+            stmt = "SELECT rid FROM Recipe WHERE rid = %s"
+            cursor.execute(stmt, [rid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No recipe found with rid {rid}"
+                await log(f"No recipe found with rid {rid}")
+
+                return res.get_data()
+
+            stmt = "DELETE FROM Recipe WHERE rid = %s"
+            cursor.execute(stmt, [rid])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Recipe {rid} deleted"
+            await log(f"Recipe {rid} deleted by admin uid {uid}")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+
+@router.get("/delete-workout")
+async def delete_workout(huid: float, uname: str, wid: int):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = await auth_admin(auth)
+            if type(uid) != int:
+                return uid
+
+            stmt = "SELECT wid FROM Workout WHERE wid = %s"
+            cursor.execute(stmt, [wid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No workout found with wid {wid}"
+                await log(f"No workout found with wid {wid}")
+
+                return res.get_data()
+
+            stmt = "DELETE FROM Workout WHERE wid = %s"
+            cursor.execute(stmt, [wid])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Workout {wid} deleted"
+            await log(f"Workout {wid} deleted by admin uid {uid}")
 
             return res.get_data()
 
