@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
@@ -6,6 +6,7 @@ export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   async function loadUsers() {
     setLoading(true);
@@ -35,6 +36,19 @@ export default function AdminPage() {
   useEffect(() => {
     loadUsers();
   }, []);
+
+  const filteredUsers = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+    if (!term) return users;
+
+    return users.filter(
+      (user) =>
+        String(user.uid).toLowerCase().includes(term) ||
+        user.username?.toLowerCase().includes(term) ||
+        user.uname?.toLowerCase().includes(term) ||
+        user.email?.toLowerCase().includes(term)
+    );
+  }, [users, searchTerm]);
 
   async function handleChangeLevel(changedUid, newLevel) {
     const confirmed = window.confirm(
@@ -109,6 +123,12 @@ export default function AdminPage() {
         <div className="foodSearchPanel">
           <p className="foodKicker">Admin Panel</p>
           <h1 className="foodTitle">User Management</h1>
+          <input
+            className="foodSearchInput"
+            placeholder="Search by ID, username, or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
         {error && <div className="foodError">{error}</div>}
@@ -117,7 +137,7 @@ export default function AdminPage() {
           <div className="foodLoading">Loading users...</div>
         ) : (
           <div className="foodRecipeGrid">
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <article key={user.uid} className="recipeCard">
                 <div className="recipeCardContent">
                   <div className="recipeCardTop">
