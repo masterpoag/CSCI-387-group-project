@@ -66,7 +66,7 @@ async def create_food(nf: Food):
 
                 return res.get_data()
 
-            stmt = "INSERT INTO Food (cal, base_measure, name) VALUES (%s, %s, %s)"
+            stmt = "INSERT INTO Food (cal, base_measure, name) VALUES (%s, %s, %s, %s)"
 
             cursor.execute(stmt, [nf.cal, nf.base_measurement, nf.fname])
 
@@ -154,9 +154,9 @@ async def create_recipe(huid: float, uname: str, nr: NewRecipe, foods: list[Food
                 fids.append([result[0]["fid"], f.qty]) #type: ignore
 
             # Add Recipe
-            stmt = "INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES (%s, %s, %s, %s, %s)"
-            await log(f"INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES ({nr.rname}, {nr.desc}, {nr.instruct}, {nr.isPublic}, {uid})")
-            cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, nr.isPublic, uid])
+            stmt = "INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid, isPublishable) VALUES (%s, %s, %s, %s, %s, %s)"
+            await log(f"INSERT INTO Recipe (name, `desc`, instruct, isPublic, User_uid) VALUES ({nr.rname}, {nr.desc}, {nr.instruct}, {False}, {uid}, {nr.isPublishable})")
+            cursor.execute(stmt, [nr.rname, nr.desc, nr.instruct, False, uid, nr.isPublishable])
 
             stmt = "SELECT rid FROM Recipe WHERE User_uid = %s AND name = %s"
             cursor.execute(stmt, [uid, nr.rname])
@@ -230,9 +230,9 @@ async def create_workout(huid: float, uname: str, nw: NewWorkout):
                 return res.get_data()
 
             # Add Workout
-            stmt = "INSERT INTO Workout (instructions, wname, isPublic, User_uid) VALUES (%s, %s, %s, %s)"
-            await log(f"INSERT INTO Workout (instructions, wname, isPublic, User_uid) VALUES ({nw.instructions}, {nw.name}, {nw.isPublic}, {uid})")
-            cursor.execute(stmt, [nw.instructions, nw.name, nw.isPublic, uid])
+            stmt = "INSERT INTO Workout (instructions, wname, isPublic, User_uid, isPublishable) VALUES (%s, %s, %s, %s, %s)"
+            await log(f"INSERT INTO Workout (instructions, wname, isPublic, User_uid) VALUES ({nw.instructions}, {nw.name}, {False}, {uid}, {nw.isPublishable})")
+            cursor.execute(stmt, [nw.instructions, nw.name, False, uid, nw.isPublishable])
 
             # End Transaction
             connection.commit()
@@ -282,6 +282,7 @@ async def get_user_recipe(huid: float, uname: str):
                     "desc": recipe["desc"], # type: ignore
                     "instruct": recipe["instruct"], # type: ignore
                     "isPublic": bool(recipe["isPublic"]), # type: ignore
+                    "owner": uname,
                     "ingredients": ingredients
                 })
 
@@ -513,6 +514,7 @@ async def get_user_workout(huid: float, uname: str):
                     "name": workout["wname"], # type: ignore
                     "instructions": workout["instructions"], # type: ignore
                     "isPublic": bool(workout["isPublic"]), # type: ignore
+                    "owner": uname,
                 })
 
             res.data["Result"] = "Success"

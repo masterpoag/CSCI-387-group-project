@@ -6,8 +6,8 @@ from utils import Result, log, data_base_err, auth_user, auth_chef_or_admin
 router = APIRouter(prefix="/api/chef")
 
 
-@router.get("/get-private-recipes")
-async def get_private_recipes(huid: float, uname: str):
+@router.get("/get-publishable-recipes")
+async def get_publishable_recipes(huid: float, uname: str):
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -20,7 +20,7 @@ async def get_private_recipes(huid: float, uname: str):
             if type(uid) != int:
                 return uid
 
-            stmt = "SELECT Recipe.rid, Recipe.name, Recipe.`desc`, Recipe.instruct, Recipe.isPublic, User.uname FROM Recipe JOIN User ON Recipe.User_uid = User.uid WHERE Recipe.isPublic = FALSE"
+            stmt = "SELECT Recipe.rid, Recipe.name, Recipe.`desc`, Recipe.instruct, Recipe.isPublic, User.uname FROM Recipe JOIN User ON Recipe.User_uid = User.uid WHERE Recipe.isPublishable = TRUE"
             cursor.execute(stmt)
 
             recipes = cursor.fetchall()
@@ -106,13 +106,21 @@ async def set_recipe_publicity(huid: float, uname: str, rid: int, isPublic: bool
             if type(uid) != int:
                 return uid
 
-            stmt = "SELECT rid FROM Recipe WHERE rid = %s"
+            stmt = "SELECT rid, isPublishable FROM Recipe WHERE rid = %s"
             cursor.execute(stmt, [rid])
 
-            if len(cursor.fetchall()) == 0:
+            row = cursor.fetchone()
+            if row is None:
                 res.data["Result"] = "Failed"
                 res.data["Message"] = f"No recipe found with rid {rid}"
                 await log(f"No recipe found with rid {rid}")
+
+                return res.get_data()
+
+            if isPublic and not bool(row["isPublishable"]): # type: ignore
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"Recipe {rid} is not publishable and cannot be made public"
+                await log(f"Attempt to make non-publishable recipe {rid} public denied")
 
                 return res.get_data()
 

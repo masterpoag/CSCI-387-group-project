@@ -34,6 +34,7 @@ CREATE TABLE Recipe (
     instruct text  NULL,
     isPublic bool  NOT NULL,
     User_uid int  NOT NULL,
+    isPublishable bool NOT NULL,
     CONSTRAINT Recipe_pk PRIMARY KEY (rid)
 );
 
@@ -56,6 +57,7 @@ CREATE TABLE Workout (
     wname text NOT NULL,
     instructions text  NOT NULL,
     isPublic bool  NOT NULL,
+    isPublishable bool NOT NULL,
     CONSTRAINT Workout_pk PRIMARY KEY (wid)
 );
 

@@ -23,12 +23,12 @@ class NewRecipe(BaseModel):
     rname: str
     desc: str
     instruct: str
-    isPublic: bool
+    isPublishable: bool
 
 class NewWorkout(BaseModel):
     name: str
     instructions: str
-    isPublic: bool
+    isPublishable: bool
 
 class Food(BaseModel):
     fname: str
