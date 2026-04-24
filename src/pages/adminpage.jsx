@@ -20,6 +20,7 @@ export default function AdminPage() {
       const json = await res.json();
 
       if (json?.Result === "Success") {
+        console.log("Loaded users:", json.Data);
         setUsers(json.Data ?? []);
       } else {
         setError(json?.Message || "Failed to load users");
@@ -87,14 +88,14 @@ export default function AdminPage() {
     }
   }
 
-  const getAccountTypeLabel = (type) => {
+ const getAccountTypeLabel = (type) => {
     switch (type) {
       case 0:
         return "Admin";
       case 1:
-        return "Premium";
-      case 2:
         return "Standard";
+      case 2:
+        return "Chef";
       case 3:
         return "Trainer";
       default:
@@ -133,7 +134,7 @@ export default function AdminPage() {
                       <strong>User ID:</strong> {user.uid}
                     </p>
                     <p className="recipeCardDesc">
-                      <strong>Email:</strong> {user.email || "N/A"}
+                      <strong>Email:</strong> {user.uname || "N/A"}
                     </p>
                   </div>
 
@@ -149,8 +150,8 @@ export default function AdminPage() {
                               handleChangeLevel(user.uid, Number(e.target.value))
                             }
                           >
-                            <option value={1}>Premium</option>
-                            <option value={2}>Standard</option>
+                            <option value={1}>Standard</option>
+                            <option value={2}>Chef</option>
                             <option value={3}>Trainer</option>
                           </select>
                         </div>
