@@ -1,11 +1,25 @@
 import React from "react";
 
-export default function WorkoutCard({ workout }) {
+export default function WorkoutCard({
+  workout,
+  onDelete,
+  canDelete,
+}) {
   return (
     <article className="recipeCard">
       <div className="recipeCardContent">
         <div className="recipeCardTop">
           <h2 className="recipeCardTitle">{workout.name}</h2>
+
+          {canDelete && (
+            <button
+              className="recipeCardDeleteBtn"
+              onClick={() => onDelete(workout.wid)}
+              aria-label="Delete workout"
+            >
+              🗑
+            </button>
+          )}
         </div>
 
         <hr className="recipeCardDivider" />
@@ -18,7 +32,7 @@ export default function WorkoutCard({ workout }) {
             </p>
           </div>
         )}
-
+          
         <span
           className={`recipeCardBadge ${
             workout.isPublic ? "isPublic" : "isPrivate"

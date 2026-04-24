@@ -1,8 +1,8 @@
-import { configDotenv } from "dotenv";
 import { useEffect, useMemo, useState } from "react";
 import WorkoutCard from "./cards/WorkoutCard";
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
+const API_BASE =
+  import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
 /* ================= NEW WORKOUT MODAL ================= */
 function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
@@ -40,7 +40,6 @@ function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
       <div
         className="newFoodModalDialog"
         role="dialog"
-        aria-modal="true"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <h2 className="newFoodModalTitle">Create Workout</h2>
@@ -50,11 +49,9 @@ function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
             <span className="fieldLabel">Workout Name</span>
             <input
               className="textInput"
-              type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              autoFocus
             />
           </label>
 
@@ -68,14 +65,20 @@ function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
           </label>
 
           {canMakePublic && (
-            <label className="field">
-              <span className="fieldLabel">Public</span>
-              <input
-                type="checkbox"
-                checked={isPublic}
-                onChange={(e) => setIsPublic(e.target.checked)}
-              />
-            </label>
+            <div className="createRecipeToggle">
+              <label className="createRecipeToggleLabel">
+                <input
+                  type="checkbox"
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                  className="createRecipeCheckbox"
+                />
+                <span className="createRecipeToggleSwitch"></span>
+                <span className="createRecipeToggleText">
+                  {isPublic ? "Public Workout" : "Private Workout"}
+                </span>
+              </label>
+            </div>
           )}
 
           <div className="newFoodModalActions">
@@ -88,9 +91,7 @@ function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
             </button>
 
             <button type="submit" className="primaryButton">
-              <span className="primaryButtonInner">
-                Save Workout
-              </span>
+              Save Workout
             </button>
           </div>
         </form>
@@ -105,8 +106,13 @@ export default function WorkoutPage() {
   const [workouts, setWorkouts] = useState([]);
   const [workoutsError, setWorkoutsError] = useState("");
 
-  const [createWorkoutModalOpen, setCreateWorkoutModalOpen] = useState(false);
+  const [createWorkoutModalOpen, setCreateWorkoutModalOpen] =
+    useState(false);
+
   const [accountType, setAccountType] = useState(null);
+
+  /* ================= AUTH ================= */
+  const isAdmin = accountType === 0 || accountType === 3;
 
   /* ================= LOAD WORKOUTS ================= */
   async function loadWorkouts() {
@@ -124,14 +130,12 @@ export default function WorkoutPage() {
       ]);
 
       const publicJson = await publicRes.json();
-      console.log(publicJson)
       const userJson = await userRes.json();
-      console.log(userJson)
+
       const allWorkouts = [
         ...(userJson?.Data ?? []),
         ...(publicJson?.Data ?? []),
       ];
-      console.log(allWorkouts)
 
       setWorkouts(allWorkouts);
     } catch {
@@ -142,6 +146,33 @@ export default function WorkoutPage() {
   useEffect(() => {
     loadWorkouts();
   }, []);
+
+  /* ================= DELETE ================= */
+  async function handleDeleteWorkout(wid) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this workout?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/delete-workout?huid=${localStorage.getItem(
+          "token"
+        )}&uname=${localStorage.getItem("username")}&wid=${wid}`,
+        { method: "GET" }
+      );
+
+      const json = await res.json();
+
+      if (json?.Result === "Success") {
+        loadWorkouts();
+      } else {
+        console.error(json?.Message);
+      }
+    } catch {
+      console.error("Network error");
+    }
+  }
 
   /* ================= FILTER ================= */
   const filteredWorkouts = useMemo(() => {
@@ -154,7 +185,7 @@ export default function WorkoutPage() {
     );
   }, [workouts, searchTerm]);
 
-  /* ================= AUTH ================= */
+  /* ================= ACCOUNT ================= */
   async function loadAccountType() {
     const token = localStorage.getItem("token");
     if (!token) return setAccountType(null);
@@ -165,11 +196,8 @@ export default function WorkoutPage() {
       );
       const json = await res.json();
 
-      if (
-        json?.Result === "Success" &&
-        json.Data?.[0]?.account_type !== undefined
-      ) {
-        setAccountType(json.Data[0].account_type);
+      if (json?.Result === "Success") {
+        setAccountType(json.Data?.[0]?.account_type);
       } else {
         setAccountType(null);
       }
@@ -179,9 +207,12 @@ export default function WorkoutPage() {
   }
 
   async function handleCreateWorkoutClick() {
-    if (!localStorage.getItem("username") || !localStorage.getItem("token")) {
+    if (
+      !localStorage.getItem("username") ||
+      !localStorage.getItem("token")
+    ) {
       const confirmed = window.confirm(
-        "You need to log in to create a workout. Would you like to log in now?"
+        "You need to log in to create a workout."
       );
       if (confirmed) {
         window.location.href = "/~group3sp26/login";
@@ -193,10 +224,9 @@ export default function WorkoutPage() {
     setCreateWorkoutModalOpen(true);
   }
 
-  /* ================= CREATE WORKOUT ================= */
+  /* ================= CREATE ================= */
   async function handleCreateWorkout(data) {
     try {
-      console.log(data)
       const res = await fetch(
         `${API_BASE}/api/create-workout?huid=${localStorage.getItem(
           "token"
@@ -221,58 +251,48 @@ export default function WorkoutPage() {
     }
   }
 
+  /* ================= PERMISSION ================= */
+  const canDeleteWorkout = (workout) =>
+    !workout.isPublic || (isAdmin && workout.isPublic);
+
   /* ================= UI ================= */
   return (
     <div className="foodPage">
       <div className="foodPageContent">
         <div className="foodSearchPanel">
-          <div className="foodSearchPanelTopBar">
-            <button
-              type="button"
-              className="foodCreateRecipeBtn"
-              onClick={handleCreateWorkoutClick}
-            >
-              Create Workout +
-            </button>
-          </div>
-
+          <button
+            className="foodCreateRecipeBtn"
+            onClick={handleCreateWorkoutClick}
+          >
+            Create Workout +
+          </button>
           <p className="foodKicker">Find your next workout</p>
           <h1 className="foodTitle">Workout Explorer</h1>
-
           <input
             className="foodSearchInput"
-            placeholder="Search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search..."
           />
-
-          <p className="foodResultsMeta">
-            Showing {filteredWorkouts.length} workouts
-          </p>
         </div>
 
         <div className="foodRecipeGrid">
-          {filteredWorkouts.length > 0 ? (
-            filteredWorkouts.map((workout) => (
-              <WorkoutCard workout={workout} />
-            ))
-          ) : (
-            <div className="foodEmptyState">
-              <h3 className="foodEmptyTitle">No workouts found</h3>
-              <p className="foodEmptyText">
-                Try a different keyword.
-              </p>
-            </div>
-          )}
+          {filteredWorkouts.map((workout) => (
+            <WorkoutCard
+              key={workout.wid}
+              workout={workout}
+              canDelete={canDeleteWorkout(workout)}
+              onDelete={handleDeleteWorkout}
+            />
+          ))}
         </div>
       </div>
 
-      {/* Modal */}
       <NewWorkoutModal
         open={createWorkoutModalOpen}
         onClose={() => setCreateWorkoutModalOpen(false)}
         onSave={handleCreateWorkout}
-        canMakePublic={accountType === 0 || accountType === 3}
+        canMakePublic={isAdmin}
       />
     </div>
   );
