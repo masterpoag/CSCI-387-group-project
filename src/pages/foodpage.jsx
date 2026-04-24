@@ -121,7 +121,39 @@ export default function RecipePage() {
     IMPERIAL_BASE_UNITS.find((u) => u.value === selectedUnit)?.label ??
     "selected unit";
 
-  // ================= HANDLERS =================
+  /* ================= DELETE ================= */
+  async function handleDeleteRecipe(rid) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this recipe?"
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/delete-recipe?huid=${localStorage.getItem(
+          "token"
+        )}&uname=${localStorage.getItem("username")}&rid=${rid}`,
+        { method: "GET" }
+      );
+
+      const json = await res.json();
+
+      if (json?.Result === "Success") {
+        loadRecipes();
+      } else {
+        console.error(json?.Message);
+      }
+    } catch {
+      console.error("Network error");
+    }
+  }
+
+  /* ================= PERMISSION ================= */
+  const isAdmin = accountType === 0 || accountType === 3;
+
+  /* ================= PERMISSION ================= */
+  const canDeleteRecipe = (recipe) =>
+    !recipe.isPublic || (isAdmin && recipe.isPublic);
   function handleFoodChange(val) {
     if (val === NEW_FOOD_VALUE) {
       if (selectedUnit === null) return;
@@ -311,6 +343,8 @@ export default function RecipePage() {
                 key={`${recipe.name}-${recipe.owner}`}
                 recipe={recipe}
                 ingredients={recipe.ingredients}
+                canDelete={canDeleteRecipe(recipe)}
+                onDelete={handleDeleteRecipe}
               />
             ))
           ) : (

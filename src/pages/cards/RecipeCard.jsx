@@ -10,12 +10,27 @@ import React from "react";
  */
 
 
-export default function RecipeCard({ recipe, ingredients = [] }) {
+export default function RecipeCard({
+  recipe,
+  ingredients = [],
+  onDelete,
+  canDelete,
+}) {
   return (
     <article className="recipeCard">
       <div className="recipeCardContent">
         <div className="recipeCardTop">
           <h2 className="recipeCardTitle">{recipe.name}</h2>
+
+          {canDelete && (
+            <button
+              className="recipeCardDeleteBtn"
+              onClick={() => onDelete(recipe.rid)}
+              aria-label="Delete recipe"
+            >
+              🗑
+            </button>
+          )}
         </div>
 
         {recipe.desc && (

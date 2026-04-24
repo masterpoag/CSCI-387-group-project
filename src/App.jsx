@@ -4,12 +4,17 @@ import HomePage from "./pages/index.jsx";
 import LoginPage from "./pages/loginpage.jsx"
 import FoodPage from "./pages/foodpage.jsx";
 import WorkoutPage from "./pages/workoutpage.jsx";
+import AdminPage from "./pages/adminpage.jsx";
+
+const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     return !!localStorage.getItem("token");
   });
+
+  const [accountType, setAccountType] = useState(null);
 
 
   const [theme, setTheme] = useState(() => {
@@ -24,6 +29,31 @@ function App() {
     document.documentElement.setAttribute("data-theme", theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
+
+  useEffect(() => {
+    async function loadAccountType() {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setAccountType(null);
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/get-auth-level?huid=${token}`);
+        const json = await res.json();
+        if (json?.Result === "Success" && json.Data?.[0]?.account_type !== undefined) {
+          setAccountType(json.Data[0].account_type);
+        } else {
+          setAccountType(null);
+        }
+      } catch {
+        setAccountType(null);
+      }
+    }
+
+    if (isAuthenticated) {
+      loadAccountType();
+    }
+  }, [isAuthenticated]);
 
   const isLightTheme = theme === "light";
 
@@ -76,6 +106,14 @@ function App() {
                 >
                   Workouts
                 </NavLink>
+                {accountType === 0 && (
+                  <NavLink
+                    to="/admin"
+                    className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                  >
+                    Admin
+                  </NavLink>
+                )}
                 {isAuthenticated ? (
                   <button
                     className="topNavLink"
@@ -105,6 +143,7 @@ function App() {
           <Route path="/login" element={<LoginPage setIsAuthenticated={setIsAuthenticated} />} />
           <Route path="/food" element={<FoodPage />} />
           <Route path="/workouts" element={<WorkoutPage />} />
+          <Route path="/admin" element={accountType === 0 ? <AdminPage /> : <HomePage />} />
         </Routes>
       </>
     );
