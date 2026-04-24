@@ -59,6 +59,18 @@ CREATE TABLE Workout (
     CONSTRAINT Workout_pk PRIMARY KEY (wid)
 );
 
+-- Table: Report
+CREATE TABLE Report (
+    repid int NOT NULL AUTO_INCREMENT,
+    User_uid int NOT NULL,
+    rname text NOT NULL,
+    descript text NOT NULL,
+    rep_type varchar(3) NOT NULL,
+    obj_id int NOT NULL,
+    timestub timestamp NOT NULL,
+    CONSTRAINT Report_pk PRIMARY KEY (repid)
+);
+
 -- foreign keys
 -- Reference: Admin_User (table: Admin)
 ALTER TABLE Admin ADD CONSTRAINT Admin_User FOREIGN KEY Admin_User (User_uid)
@@ -79,6 +91,10 @@ ALTER TABLE Quantity ADD CONSTRAINT portion_Recipe FOREIGN KEY portion_Recipe (R
 -- Reference: rec_food_Food (table: Quantity)
 ALTER TABLE Quantity ADD CONSTRAINT rec_food_Food FOREIGN KEY rec_food_Food (Food_fid)
     REFERENCES Food (fid);
+
+-- Reference: Report_User (table: Report)
+ALTER TABLE Report ADD CONSTRAINT Report_User FOREIGN KEY Report_User (User_uid)
+    REFERENCES User (uid);
 
 -- End of file.
 

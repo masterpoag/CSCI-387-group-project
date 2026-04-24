@@ -6,7 +6,7 @@ from utils import Result, log, data_base_err, auth_user, auth_chef_or_admin
 router = APIRouter(prefix="/api/chef")
 
 
-@router.get("/get-private-recipies")
+@router.get("/get-private-recipes")
 async def get_private_recipes(huid: float, uname: str):
     res = Result()
 

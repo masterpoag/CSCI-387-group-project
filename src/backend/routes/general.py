@@ -1,10 +1,45 @@
 import mysql.connector
 import db
 from fastapi import APIRouter
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from message import *
 from utils import Result, log, data_base_err, add_food, hash_UID, hash_pass, calc_UID, safe, auth_user
 
 router = APIRouter()
+
+@router.post("/api/report-content")
+async def report_content(huid: float, uname: str, nr: NewReport):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            uid = await auth_user(huid, uname)
+            if type(uid) != int:
+                return uid
+
+            stmt = "SELECT FROM Report WHERE User_uid = %s AND obj_id = %s"
+            cursor.execute(stmt, [uid, nr.obj_id])
+
+            if (len(cursor.fetchall()) != 0):
+                res.data["Result"] = "Failed"
+                res.data["Message"] = "User already has a report for this object"
+
+                return res.get_data()
+
+            stmt = "INSERT INTO Report (User_uid, rname, descript, rep_type, obj_id, timestub) VALUES (%s, %s, %s, %s, %s, UTC_TIMESTAMP())"
+            cursor.execute(stmt, [uid, nr.rname, nr.desc, nr.rep_type, nr.obj_id])
+
+            await log(f"INSERT INTO Report (User_uid, rname, descript, rep_type, obj_id, timestub) VALUES ({uid}, {nr.rname}, {nr.desc}, {nr.rep_type}, {nr.obj_id}, UTC_TIMESTAMP())")
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Report successfully created"
+
+            return res.get_data()
+        
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
 
 
 @router.post("/api/create-food")
@@ -242,6 +277,7 @@ async def get_user_recipe(huid: float, uname: str):
                 ingredients = cursor.fetchall()
 
                 recipe_list.append({
+                    "rid": recipe["rid"], # type: ignore
                     "name": recipe["name"], # type: ignore
                     "desc": recipe["desc"], # type: ignore
                     "instruct": recipe["instruct"], # type: ignore
@@ -286,6 +322,9 @@ async def delete_recipe(huid: float, uname: str, rid: int):
                 await log(f"No recipe with rid {rid} owned by uid {uid}")
 
                 return res.get_data()
+
+            stmt = "DELETE FROM Quantity WHERE Recipe_rid = %s"
+            cursor.execute(stmt, [rid])
 
             stmt = "DELETE FROM Recipe WHERE rid = %s AND User_uid = %s"
             cursor.execute(stmt, [rid, uid])
@@ -699,6 +738,79 @@ async def login(uname: str, upass: str):
             await log(f"Database error:\n\t{err}")
 
             return res.get_data()
+
+
+@router.get("/api/get-user-reports")
+async def get_user_reports(huid: float, uname: str, tz: str):
+    res = Result()
+
+    try:
+        ZoneInfo(tz)
+    except ZoneInfoNotFoundError:
+        res.data["Result"] = "Failed"
+        res.data["Message"] = f"Invalid timezone: {tz}"
+        await log(f"Invalid timezone passed: {tz}")
+        return res.get_data()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = auth
+
+            stmt = "SELECT repid, rname, descript, rep_type, obj_id, CONVERT_TZ(timestub, 'UTC', %s) as timestub FROM Report WHERE User_uid = %s"
+            cursor.execute(stmt, [tz, uid])
+
+            reports = cursor.fetchall()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Returning reports for {uname}"
+            res.data["Data"] = reports
+            await log(f"Returning {len(reports)} reports for {uname}")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+
+@router.get("/api/delete-report")
+async def delete_report(huid: float, uname: str, repid: int):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = auth
+
+            stmt = "SELECT repid FROM Report WHERE repid = %s AND User_uid = %s"
+            cursor.execute(stmt, [repid, uid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No report found with repid {repid} owned by {uname}"
+                await log(f"No report with repid {repid} owned by uid {uid}")
+
+                return res.get_data()
+
+            stmt = "DELETE FROM Report WHERE repid = %s AND User_uid = %s"
+            cursor.execute(stmt, [repid, uid])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Report {repid} deleted"
+            await log(f"Report {repid} deleted by owner uid {uid}")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
 
 
 @router.get("/hello")

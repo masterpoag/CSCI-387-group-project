@@ -1,6 +1,7 @@
 import mysql.connector
 import db
 from fastapi import APIRouter
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from utils import Result, log, data_base_err, auth_user, auth_admin
 
 router = APIRouter(prefix="/api/admin")
@@ -135,3 +136,80 @@ async def get_all_user(huid: float, uname: str):
 
         except mysql.connector.Error as err:
             await data_base_err(err, connection)
+
+
+@router.get("/get-all-reports")
+async def get_all_reports(huid: float, uname: str, tz: str):
+    res = Result()
+
+    try:
+        ZoneInfo(tz)
+    except ZoneInfoNotFoundError:
+        res.data["Result"] = "Failed"
+        res.data["Message"] = f"Invalid timezone: {tz}"
+        await log(f"Invalid timezone passed: {tz}")
+        return res.get_data()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = await auth_admin(auth)
+            if type(uid) != int:
+                return uid
+
+            stmt = "SELECT Report.repid, Report.rname, Report.descript, Report.rep_type, Report.obj_id, CONVERT_TZ(Report.timestub, 'UTC', %s) as timestub, User.uname FROM Report JOIN User ON Report.User_uid = User.uid"
+            cursor.execute(stmt, [tz])
+
+            reports = cursor.fetchall()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = "Returning all reports"
+            res.data["Data"] = reports
+            await log(f"Admin {uname} fetching all reports ({len(reports)} total)")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)
+
+
+@router.get("/delete-report")
+async def admin_delete_report(huid: float, uname: str, repid: int):
+    res = Result()
+
+    with db.DBConnect() as (connection, cursor):
+        try:
+            auth = await auth_user(huid, uname)
+            if type(auth) != int:
+                return auth
+
+            uid = await auth_admin(auth)
+            if type(uid) != int:
+                return uid
+
+            stmt = "SELECT repid FROM Report WHERE repid = %s"
+            cursor.execute(stmt, [repid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No report found with repid {repid}"
+                await log(f"Admin {uname}: no report with repid {repid}")
+
+                return res.get_data()
+
+            stmt = "DELETE FROM Report WHERE repid = %s"
+            cursor.execute(stmt, [repid])
+
+            connection.commit()
+
+            res.data["Result"] = "Success"
+            res.data["Message"] = f"Report {repid} deleted"
+            await log(f"Report {repid} deleted by admin uid {uid}")
+
+            return res.get_data()
+
+        except mysql.connector.Error as err:
+            return await data_base_err(err, connection)

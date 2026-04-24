@@ -1,5 +1,17 @@
 from pydantic import BaseModel, model_validator
 
+class NewReport(BaseModel):
+    rname: str
+    desc: str
+    rep_type: str
+    obj_id: int
+
+    @model_validator(mode="after")
+    def check(self):
+        if self.rep_type not in ['rcp', 'wrk', 'fdd']:
+            raise ValueError("'rep_type' must be 'rcp', 'wrk', or 'fdd'")
+        return self 
+
 class NewUser(BaseModel):
     uname: str
     upass: str
