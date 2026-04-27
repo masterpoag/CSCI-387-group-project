@@ -1725,6 +1725,26 @@ button:focus-visible {
   opacity: 1;
 }
 
+.recipeCardActions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.recipeCardReportBtn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.recipeCardReportBtn:hover {
+  opacity: 1;
+}
+
 .recipeCardDesc {
   font-style: italic;
   margin: 0;

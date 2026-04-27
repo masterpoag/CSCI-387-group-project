@@ -4,6 +4,8 @@ export default function WorkoutCard({
   workout,
   onDelete,
   canDelete,
+  onReport,
+  canReport,
 }) {
   return (
     <article className="recipeCard">
@@ -11,15 +13,26 @@ export default function WorkoutCard({
         <div className="recipeCardTop">
           <h2 className="recipeCardTitle">{workout.name}</h2>
 
-          {canDelete && (
-            <button
-              className="recipeCardDeleteBtn"
-              onClick={() => onDelete(workout.wid)}
-              aria-label="Delete workout"
-            >
-              🗑
-            </button>
-          )}
+          <div className="recipeCardActions">
+            {canReport && (
+              <button
+                className="recipeCardReportBtn"
+                onClick={() => onReport(workout.wid)}
+                aria-label="Report workout"
+              >
+                🚩
+              </button>
+            )}
+            {canDelete && (
+              <button
+                className="recipeCardDeleteBtn"
+                onClick={() => onDelete(workout.wid)}
+                aria-label="Delete workout"
+              >
+                🗑
+              </button>
+            )}
+          </div>
         </div>
 
         <hr className="recipeCardDivider" />

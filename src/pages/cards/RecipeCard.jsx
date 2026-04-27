@@ -15,6 +15,8 @@ export default function RecipeCard({
   ingredients = [],
   onDelete,
   canDelete,
+  onReport,
+  canReport,
 }) {
   return (
     <article className="recipeCard">
@@ -22,15 +24,26 @@ export default function RecipeCard({
         <div className="recipeCardTop">
           <h2 className="recipeCardTitle">{recipe.name}</h2>
 
-          {canDelete && (
-            <button
-              className="recipeCardDeleteBtn"
-              onClick={() => onDelete(recipe.rid)}
-              aria-label="Delete recipe"
-            >
-              🗑
-            </button>
-          )}
+          <div className="recipeCardActions">
+            {canReport && (
+              <button
+                className="recipeCardReportBtn"
+                onClick={() => onReport(recipe.rid)}
+                aria-label="Report recipe"
+              >
+                🚩
+              </button>
+            )}
+            {canDelete && (
+              <button
+                className="recipeCardDeleteBtn"
+                onClick={() => onDelete(recipe.rid)}
+                aria-label="Delete recipe"
+              >
+                🗑
+              </button>
+            )}
+          </div>
         </div>
 
         {recipe.desc && (

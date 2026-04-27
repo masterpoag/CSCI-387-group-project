@@ -255,6 +255,57 @@ export default function WorkoutPage() {
   const canDeleteWorkout = (workout) =>
     !workout.isPublic || (isAdmin && workout.isPublic);
 
+  const canReportWorkout = (workout) =>
+    workout.isPublic;
+
+  /* ================= REPORT ================= */
+  async function handleReportWorkout(wid) {
+    const confirmed = window.confirm(
+      "Are you sure you want to report this workout?"
+    );
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("token");
+    const uname = localStorage.getItem("username");
+    if (!token || !uname) {
+      alert("Please log in to report content.");
+      return;
+    }
+
+    const desc = window.prompt("Please enter a description for the report:");
+    if (desc === null) return;
+
+    const workout = workouts.find(w => w.wid === wid);
+    if (!workout) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/report-content?huid=${token}&uname=${uname}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rname: workout.name,
+            desc: desc,
+            rep_type: "workout",
+            obj_id: wid,
+          }),
+        }
+      );
+
+      const json = await res.json();
+      if (json?.Result === "Success") {
+        alert("Workout reported successfully.");
+      } else {
+        console.error(json?.Message);
+        alert("Failed to report workout: " + (json?.Message || "Unknown error"));
+      }
+    } catch {
+      console.error("Network error");
+      alert("Network error while reporting workout.");
+    }
+  }
+
   /* ================= UI ================= */
   return (
     <div className="foodPage">
@@ -283,6 +334,8 @@ export default function WorkoutPage() {
               workout={workout}
               canDelete={canDeleteWorkout(workout)}
               onDelete={handleDeleteWorkout}
+              canReport={canReportWorkout(workout)}
+              onReport={handleReportWorkout}
             />
           ))}
         </div>

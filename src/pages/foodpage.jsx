@@ -151,9 +151,60 @@ export default function RecipePage() {
   /* ================= PERMISSION ================= */
   const isAdmin = accountType === 0 || accountType === 3;
 
+  /* ================= REPORT ================= */
+  async function handleReportRecipe(rid) {
+    const confirmed = window.confirm(
+      "Are you sure you want to report this recipe?"
+    );
+    if (!confirmed) return;
+
+    const token = localStorage.getItem("token");
+    const uname = localStorage.getItem("username");
+    if (!token || !uname) {
+      alert("Please log in to report content.");
+      return;
+    }
+
+    const desc = window.prompt("Please enter a description for the report:");
+    if (desc === null) return;
+
+    const recipe = recipes.find(r => r.rid === rid);
+    if (!recipe) return;
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/report-content?huid=${token}&uname=${uname}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rname: recipe.name,
+            desc: desc,
+            rep_type: "recipe",
+            obj_id: rid,
+          }),
+        }
+      );
+
+      const json = await res.json();
+      if (json?.Result === "Success") {
+        alert("Recipe reported successfully.");
+      } else {
+        console.error(json?.Message);
+        alert("Failed to report recipe: " + (json?.Message || "Unknown error"));
+      }
+    } catch {
+      console.error("Network error");
+      alert("Network error while reporting recipe.");
+    }
+  }
+
   /* ================= PERMISSION ================= */
   const canDeleteRecipe = (recipe) =>
     !recipe.isPublic || (isAdmin && recipe.isPublic);
+
+  const canReportRecipe = (recipe) =>
+    recipe.isPublic;
   function handleFoodChange(val) {
     if (val === NEW_FOOD_VALUE) {
       if (selectedUnit === null) return;
@@ -345,6 +396,8 @@ export default function RecipePage() {
                 ingredients={recipe.ingredients}
                 canDelete={canDeleteRecipe(recipe)}
                 onDelete={handleDeleteRecipe}
+                canReport={canReportRecipe(recipe)}
+                onReport={handleReportRecipe}
               />
             ))
           ) : (
