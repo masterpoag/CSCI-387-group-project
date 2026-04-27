@@ -1,5 +1,17 @@
 from pydantic import BaseModel, model_validator
 
+class NewReport(BaseModel):
+    rname: str
+    desc: str
+    rep_type: str
+    obj_id: int
+
+    @model_validator(mode="after")
+    def check(self):
+        if self.rep_type not in ['rcp', 'wrk', 'fdd']:
+            raise ValueError("'rep_type' must be 'rcp', 'wrk', or 'fdd'")
+        return self 
+
 class NewUser(BaseModel):
     uname: str
     upass: str
@@ -11,12 +23,12 @@ class NewRecipe(BaseModel):
     rname: str
     desc: str
     instruct: str
-    isPublic: bool
+    isPublishable: bool
 
 class NewWorkout(BaseModel):
+    name: str
     instructions: str
-    cal: int
-    isPublic: bool
+    isPublishable: bool
 
 class Food(BaseModel):
     fname: str
