@@ -154,7 +154,7 @@ In the root directory, create a file called `.env` with the following text field
 VITE_API_BASE="<PROTOCOL>://<DATABASE_IP>:<PORT>"
 ```
 
-Replace with the your respective ip and port (commonly: `htpp://localhost:8000`).
+Replace with the your respective ip and port (typically : `http://localhost:8000`).
 > [!NOTE]
 > If this enviroment variable fails to be loaded, the project will fall back to `https://gp.vroey.us`
 
