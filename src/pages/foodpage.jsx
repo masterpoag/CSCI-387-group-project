@@ -153,6 +153,7 @@ export default function RecipePage() {
 
   /* ================= REPORT ================= */
   async function handleReportRecipe(rid) {
+    console.log("Reporting recipe with rid:", rid);
     const confirmed = window.confirm(
       "Are you sure you want to report this recipe?"
     );
