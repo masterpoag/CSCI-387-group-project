@@ -13,9 +13,7 @@ export default function ChefDashboard() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/chef/get-publishable-recipes?huid=${localStorage.getItem(
-          "token"
-        )}&uname=${localStorage.getItem("username")}`
+        `${API_BASE}/api/chef/get-publishable-recipes?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`
       );
       const json = await res.json();
 

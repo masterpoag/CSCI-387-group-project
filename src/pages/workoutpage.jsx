@@ -64,7 +64,7 @@ function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
             />
           </label>
 
-          {canMakePublic && (
+          {(
             <div className="createRecipeToggle">
               <label className="createRecipeToggleLabel">
                 <input
@@ -345,7 +345,6 @@ export default function WorkoutPage() {
         open={createWorkoutModalOpen}
         onClose={() => setCreateWorkoutModalOpen(false)}
         onSave={handleCreateWorkout}
-        canMakePublic={isAdmin}
       />
     </div>
   );
