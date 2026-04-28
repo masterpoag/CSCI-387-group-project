@@ -228,6 +228,19 @@ async def delete_recipe(huid: float, uname: str, rid: int):
 
                 return res.get_data()
 
+            stmt = "SELECT Recipe_rid FROM Quantity WHERE Recipe_rid = %s"
+            cursor.execute(stmt, [rid])
+
+            if len(cursor.fetchall()) == 0:
+                res.data["Result"] = "Failed"
+                res.data["Message"] = f"No Quantity found with Recipe_rid {rid}"
+                await log(f"No Quantity found with Recipe_rid {rid}")
+
+                return res.get_data()
+
+            stmt = "DELETE From Quantity WHERE Recipe_rid = %s"
+            cursor.execute(stmt, [rid])
+
             stmt = "DELETE FROM Recipe WHERE rid = %s"
             cursor.execute(stmt, [rid])
 
