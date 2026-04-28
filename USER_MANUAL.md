@@ -1,4 +1,4 @@
-# User Manual for the NutriFlow Web App
+<img width="2541" height="1273" alt="image" src="https://github.com/user-attachments/assets/9ffcef05-4056-4773-be60-4ab42662fba0" /># User Manual for the NutriFlow Web App
 
 ---
 
@@ -437,15 +437,14 @@ The Workouts page (URL: `/workouts`) works the same way as Recipes.
 #### Browse Workouts
 
 (1) Click **Workouts** in the top navigation bar.
+<img width="2559" height="1276" alt="image" src="https://github.com/user-attachments/assets/85ff68c5-36c7-4877-a69e-bc8d1e544d0c" />
 
 (2) Use the **search box** to filter workouts by name or instructions.
-
-> ![Workouts page with search box, Create Workout button, and a grid of workout cards](docs/images/workouts-page.png)
->
-> *Figure 9 — Workouts page.*
+<img width="2541" height="1279" alt="image" src="https://github.com/user-attachments/assets/a1df43f9-d5b4-45d0-985c-8673ffe7756f" />
 
 Each workout card displays the workout name, the instructions (if provided),
 and a **Public** or **Private** badge.
+<img width="2545" height="1273" alt="image" src="https://github.com/user-attachments/assets/b99cc53a-b97e-4cf3-a122-932d4eec7eea" />
 
 #### Create a Workout
 
@@ -453,22 +452,21 @@ You must be logged in to create a workout.
 
 (1) Click **Create Workout +** at the top-left of the Workouts page. The
 Create Workout modal opens.
-
-> ![Create Workout modal with Workout Name, Instructions, optional Public checkbox, and Save Workout button](docs/images/create-workout-modal.png)
->
-> *Figure 10 — Create Workout modal.*
-
+<img width="2540" height="1272" alt="image" src="https://github.com/user-attachments/assets/1f6ec047-1cf2-4d3f-b037-e81e7d41f559" />
 (2) Enter:
 
 | Field         | Required | Notes                                       |
 |---------------|----------|---------------------------------------------|
 | Workout Name  | Yes      | For example, *Push Day*.                    |
 | Instructions  | No       | The routine, sets, and reps.                |
+<img width="2547" height="1275" alt="image" src="https://github.com/user-attachments/assets/d3a7d528-50ff-458f-b404-c2bb64905b9b" />
 
-(3) **Fitness Instructor and Admin accounts only:** check the **Public** box
-to mark the workout as eligible for publishing.
+(3)  Switch between **Keep Private** and **Submit for Publishing** toggle
+to mark if the workout is eligible for publishing or not.
+<img width="2540" height="1276" alt="image" src="https://github.com/user-attachments/assets/4536f8d6-3190-416e-8282-8d4f9df0f651" />
 
 (4) Click **Save Workout**. Click **Cancel** to close without saving.
+<img width="2536" height="1275" alt="image" src="https://github.com/user-attachments/assets/007f58a5-7dab-4a87-ab2a-2ea59338413e" />
 
 #### Delete a Workout
 
@@ -476,17 +474,17 @@ You can delete any workout you own. The trash icon (**🗑**) only appears on
 workout cards you are allowed to delete.
 
 (1) On the **Workouts** page, find the workout you want to delete.
+<img width="2542" height="1278" alt="image" src="https://github.com/user-attachments/assets/d7baf76a-38cf-4584-a887-4a7f33904045" />
 
 (2) Click the **🗑** icon in the top-right of the workout card.
-
-> ![Workout card with the trash icon highlighted in the top-right](docs/images/delete-workout.png)
->
-> *Figure 17 — Trash icon on a workout card.*
+<img width="2540" height="1270" alt="image" src="https://github.com/user-attachments/assets/0901eda9-10ce-4e0e-8af0-58cbd591743f" />
 
 (3) A confirmation dialog appears asking *"Are you sure you want to delete
 this workout?"* Click **OK** to confirm or **Cancel** to back out.
+<img width="2543" height="1347" alt="image" src="https://github.com/user-attachments/assets/1c62b37e-66a0-4496-8960-06614c194c65" />
 
 (4) After confirmation, the workout disappears from the grid.
+<img width="2543" height="1275" alt="image" src="https://github.com/user-attachments/assets/1ff0a2d5-0c9b-4871-91e5-bc6444f78d56" />
 
 #### Report a Workout
 
@@ -495,21 +493,22 @@ report it for an admin to review.
 
 (1) On a public workout card (badge shows **Public**), click the **🚩** icon
 in the top-right. The flag icon does not appear on private workouts.
-
-> ![Public workout card with the flag icon highlighted in the top-right](docs/images/report-workout.png)
->
-> *Figure 18 — Flag icon on a public workout card.*
+<img width="2546" height="1275" alt="image" src="https://github.com/user-attachments/assets/fa3d8d21-88ae-4063-be83-f07e1ebc39dd" />
 
 (2) A confirmation dialog appears asking *"Are you sure you want to report
 this workout?"* Click **OK** to continue.
+<img width="2539" height="1348" alt="image" src="https://github.com/user-attachments/assets/dc680734-7fb6-427f-b1b4-d24f50ea20fe" />
 
 (3) When prompted, enter a short **name** for the report and click **OK**.
+<img width="2542" height="1350" alt="image" src="https://github.com/user-attachments/assets/657b41ac-b40a-46da-b0e0-766cfe328d46" />
 
 (4) When prompted, enter a **description** explaining why you are reporting
 the workout and click **OK**.
+<img width="2538" height="1344" alt="image" src="https://github.com/user-attachments/assets/4a862dfa-7256-4f15-a161-a623b4c996e4" />
 
 (5) An alert confirms the report was filed: *"Workout reported successfully."*
 An admin will review it from the Admin Dashboard.
+<img width="2541" height="1345" alt="image" src="https://github.com/user-attachments/assets/f56a1adc-f999-4ca5-83d8-1a45900ed453" />
 
 If you cancel either prompt, the report is not submitted.
 
@@ -519,10 +518,8 @@ The Nutritionist Dashboard (URL: `/chef`) is shown only to users with the
 **Chef** account type and to Admins. A **Chef** link appears in the top
 navigation bar when you are signed in with one of these roles.
 
-> ![Chef Dashboard with a list of recipes pending review, each with Approve & Publish and Reject buttons](docs/images/chef-dashboard.png)
->
-> *Figure 11 — Chef Dashboard. Each card shows a recipe submitted for
-> publication.*
+<img width="2552" height="1277" alt="image" src="https://github.com/user-attachments/assets/96dca57e-058b-44d7-9846-c91b558efdfd" />
+
 
 The page lists every recipe a user has flagged as **publishable** during
 recipe creation (see [Create a Recipe](#create-a-recipe), step 4). The header
@@ -532,19 +529,23 @@ owner.
 
 To review a recipe:
 
-(1) Read the recipe details on the card.
+(1) Read the recipe details on the card.<img width="2541" height="1275" alt="image" src="https://github.com/user-attachments/assets/7cdfad6d-a4f3-4faf-a42a-d6988de38375" />
 
 (2) Click **Approve & Publish** to publish the recipe to all users, or
 **Reject** to remove it from the review list.
+<img width="2541" height="1273" alt="image" src="https://github.com/user-attachments/assets/c023dde7-920d-4f89-b08b-68919e3a2dc7" />
 
 (3) A confirmation dialog appears. Click **OK** to confirm or **Cancel** to
 back out.
+<img width="2543" height="1350" alt="image" src="https://github.com/user-attachments/assets/1284a495-cdc3-4ea2-a379-e3134d11286a" />
 
 (4) On success, the card disappears from the list. On failure, an alert
 message describes the error.
+<img width="2543" height="1273" alt="image" src="https://github.com/user-attachments/assets/01f8abb2-d45c-40ba-940c-aa49dd9940fe" />
 
 When the queue is empty, the page shows *"No recipes to review — All caught
 up!"*
+<img width="2545" height="1277" alt="image" src="https://github.com/user-attachments/assets/4236b2a5-43fb-47ff-92f6-44186f63496c" />
 
 ### Gym Instructor Dashboard
 
@@ -552,9 +553,7 @@ The Gym Instructor Dashboard (URL: `/fit`) is shown only to users with the
 **Trainer** account type and to Admins. A **Fitness** link appears in the
 top navigation bar when you are signed in with one of these roles.
 
-> ![Fitness Dashboard with a list of workouts pending review, each with Approve & Publish and Reject buttons](docs/images/fit-dashboard.png)
->
-> *Figure 12 — Fitness Dashboard.*
+<img width="2555" height="1275" alt="image" src="https://github.com/user-attachments/assets/90e2607a-14d7-4e7e-98fc-de2c448f045b" />
 
 The page lists every workout a user has flagged as **publishable** during
 workout creation (see [Create a Workout](#create-a-workout), step 3). The
@@ -564,76 +563,102 @@ Each card displays the workout name, instructions, and owner.
 To review a workout:
 
 (1) Read the workout details on the card.
+<img width="2545" height="1279" alt="image" src="https://github.com/user-attachments/assets/e6357e85-cfb7-4ea3-ac56-4be8143ae94f" />
 
 (2) Click **Approve & Publish** to publish the workout to all users, or
 **Reject** to remove it from the review list.
+<img width="2541" height="1281" alt="image" src="https://github.com/user-attachments/assets/d49e0e56-f236-41a7-8786-968ec19b2c81" />
 
 (3) A confirmation dialog appears. Click **OK** to confirm or **Cancel** to
 back out.
+<img width="2538" height="1357" alt="image" src="https://github.com/user-attachments/assets/4544a000-4199-4d03-8549-381114d89bb7" />
 
 (4) On success, the card disappears from the list. On failure, an alert
 message describes the error.
-
+#TODO
 When the queue is empty, the page shows *"No workouts to review — All caught
 up!"*
-
+#TODO
 ### Admin Dashboard
 
 The Admin Dashboard (URL: `/admin`) is shown only to users with the **Admin**
 account type. An **Admin** link appears in the top navigation bar. Admins
 also see the **Chef** and **Fitness** links and can use those dashboards.
 
+<img width="2560" height="1275" alt="image" src="https://github.com/user-attachments/assets/1c8cdd33-a2c1-43cf-b055-d1846329a55b" />
+
 The page has two tabs at the top: **User Management** and **Reports**. The
 Reports tab label includes the current count — for example, *"Reports (5)."*
+
+<img width="2543" height="1279" alt="image" src="https://github.com/user-attachments/assets/61bee8f0-2149-4787-bd2f-73e974848e2e" />
 
 #### Manage Users
 
 (1) Click the **User Management** tab.
 
-> ![Admin Dashboard User Management tab showing a search bar and a grid of user cards with Change Type dropdowns and Delete User buttons](docs/images/admin-users.png)
->
-> *Figure 13 — User Management tab.*
+<img width="2544" height="1276" alt="image" src="https://github.com/user-attachments/assets/38bb61ee-3cd8-4a57-8e92-3dc8c960a117" />
 
 (2) Use the **search box** to filter users by ID, username, or email.
 
-(3) Each user card displays the username, role badge, user ID, and email
+<img width="2539" height="1275" alt="image" src="https://github.com/user-attachments/assets/3a61eef8-3793-4985-b577-2eabac282aa8" />
+
+(3) Each user card displays the role badge, user ID, and email
 address.
+
+<img width="2541" height="1276" alt="image" src="https://github.com/user-attachments/assets/de7ab503-1e0a-43b9-9534-ce485a324f0f" />
 
 (4) To change a user's role, choose a new value from the **Change Type**
 dropdown (Standard, Chef, or Trainer). A confirmation dialog appears before
 the change is saved.
 
+#TODO
+
 (5) To remove a user, click **Delete User**. A confirmation dialog appears.
 **This action cannot be undone.**
 
+<img width="2539" height="1276" alt="image" src="https://github.com/user-attachments/assets/5862361b-21e4-48d4-b8dc-591569ae6fd1" />
+
+<img width="2541" height="1347" alt="image" src="https://github.com/user-attachments/assets/14bd9037-c801-4720-8a94-b8dd2a0ae77b" />
+
 Admin accounts have no actions on their cards — Admins cannot be demoted or
 deleted from this dashboard.
+
+<img width="2543" height="1275" alt="image" src="https://github.com/user-attachments/assets/de218c2a-1463-444a-bc0c-dddbc07d4941" />
 
 #### Review Reports
 
 (1) Click the **Reports** tab.
 
-> ![Admin Dashboard Reports tab showing report cards with type badges and Delete Report, Delete Recipe, and Delete Workout buttons](docs/images/admin-reports.png)
->
-> *Figure 14 — Reports tab.*
+<img width="2543" height="1276" alt="image" src="https://github.com/user-attachments/assets/02a56dee-81b3-4fad-aa69-87a94fbec169" />
 
 (2) Each report card shows:
   - The report title and the type of content reported (Recipe, Workout, or
     Food).
   - The report description.
-  - The username of the reporter and the timestamp of the report.
+  - The username of the reporter.
   - Details of the reported item, including its name and owner.
+
+<img width="2541" height="1264" alt="image" src="https://github.com/user-attachments/assets/5a54b7fd-c726-407b-ac04-de7f4b832e78" />
 
 (3) To dismiss a report without removing the reported content, click
 **Delete Report**.
+
+<img width="2544" height="1276" alt="image" src="https://github.com/user-attachments/assets/7cba87f8-2123-4659-8ad4-10bb5d03cccd" />
 
 (4) To remove the reported content itself, click **Delete Recipe** or
 **Delete Workout**. The matching button is shown automatically based on the
 report type.
 
+<img width="2540" height="1269" alt="image" src="https://github.com/user-attachments/assets/e031e403-b743-4fb2-8bc1-3eb50a40290f" />
+
 (5) A confirmation dialog appears for every action.
 
+<img width="2544" height="1350" alt="image" src="https://github.com/user-attachments/assets/ac005de7-a805-4c6c-94d9-2ba727c38d5b" />
+
+
 When there are no reports, the page shows *"No reports found."*
+
+<img width="2541" height="1273" alt="image" src="https://github.com/user-attachments/assets/7b533bf5-dad9-4b90-8a85-70f8b2674dea" />
 
 ### Account Roles
 
