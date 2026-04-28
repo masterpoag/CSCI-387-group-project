@@ -181,32 +181,38 @@ The next sections are for people using the live NutriFlow application. Open
 #### Create an Account
 
 (1) Click **Login** in the top navigation bar.
+<img width="1920" height="1080" alt="ss_2026-04-28_13-01-19" src="https://github.com/user-attachments/assets/fb8270c9-42ae-42c9-ad69-bdac2422ab51" />
+
 
 (2) Click **Create one** at the bottom of the login card.
 
-> ![Registration form showing Email, Password, and Confirm password fields with the Create Account button](docs/images/register-form.png)
+> <img width="1920" height="1080" alt="ss_2026-04-28_13-08-06" src="https://github.com/user-attachments/assets/ce299135-4c60-4ef0-857a-18d4af86af7e" />
 >
 > *Figure 1 — Registration form. Click "Create one" to switch from Login to
 > Create Account mode.*
 
 (3) Fill in your **email**, **password**, and **confirm password**.
+<img width="1920" height="1080" alt="ss_2026-04-28_13-14-19" src="https://github.com/user-attachments/assets/40ac927c-88ed-4391-8e0b-35281b27a342" />
 
 (4) Click **Create Account**.
+<img width="1920" height="1080" alt="ss_2026-04-28_13-16-39" src="https://github.com/user-attachments/assets/0823c2ae-665b-444b-9984-dde100787157" />
 
 (5) When the success popup appears, click **OK**. You will be returned to the
 login form.
+<img width="1920" height="1080" alt="ss_2026-04-28_13-17-32" src="https://github.com/user-attachments/assets/7a6d6b6f-9da5-42f2-9034-a5795afa156b" />
 
 #### Log In
 
 (1) From the login card, enter the **email** and **password** you registered
 with.
 
-> ![Login form with Email and Password fields and the Login button highlighted](docs/images/login-form.png)
+> <img width="1920" height="1080" alt="ss_2026-04-28_13-20-20" src="https://github.com/user-attachments/assets/21d5bae1-3bfc-43fd-aa43-dcea63e7ab65" />
 >
 > *Figure 2 — Login form. Click Login after entering credentials.*
 
 (2) Click **Login**. On success, you are redirected to the home page and the
 top navigation now shows a **Logout** button.
+<img width="1920" height="1080" alt="ss_2026-04-28_13-20-20" src="https://github.com/user-attachments/assets/4e97e0c0-1fb5-4307-8f16-6d86ef7a785b" />
 
 If your credentials are incorrect, an error message appears below the form in
 red.
