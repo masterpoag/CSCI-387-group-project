@@ -1385,6 +1385,17 @@ button:focus-visible {
   min-width: 0;
 }
 
+.createRecipeModalDialog .createRecipeSelector .adminUserActionSelect {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(167, 139, 250, 0.35);
+  color: #ffffff;
+}
+
+.createRecipeModalDialog .createRecipeSelector .adminUserActionSelect option {
+  background: rgba(15, 23, 42, 0.95);
+  color: #ffffff;
+}
+
 /* Ingredients Table */
 .createRecipeIngredientsTable {
   margin-top: 1rem;
