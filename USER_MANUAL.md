@@ -615,7 +615,9 @@ address.
 dropdown (Standard, Chef, or Trainer). A confirmation dialog appears before
 the change is saved.
 
-#TODO
+<img width="2539" height="1276" alt="image" src="https://github.com/user-attachments/assets/f0b060b7-41af-4db3-a619-7920fd61c728" />
+
+<img width="2538" height="1348" alt="image" src="https://github.com/user-attachments/assets/f85a7b7e-73e8-4538-891d-19bdfeb4f3c5" />
 
 (5) To remove a user, click **Delete User**. A confirmation dialog appears.
 **This action cannot be undone.**
