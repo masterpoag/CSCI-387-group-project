@@ -1,4 +1,4 @@
-<img width="2541" height="1273" alt="image" src="https://github.com/user-attachments/assets/9ffcef05-4056-4773-be60-4ab42662fba0" /># User Manual for the NutriFlow Web App
+# User Manual for the NutriFlow Web App
 
 ---
 
@@ -575,10 +575,14 @@ back out.
 
 (4) On success, the card disappears from the list. On failure, an alert
 message describes the error.
-#TODO
+
+<img width="2550" height="1282" alt="image" src="https://github.com/user-attachments/assets/596a3309-b53d-4b16-b2e9-d6da2502209c" />
+
 When the queue is empty, the page shows *"No workouts to review — All caught
 up!"*
-#TODO
+
+<img width="2544" height="1280" alt="image" src="https://github.com/user-attachments/assets/fadc6df6-a072-452e-a8e6-01b3fca00757" />
+
 ### Admin Dashboard
 
 The Admin Dashboard (URL: `/admin`) is shown only to users with the **Admin**
