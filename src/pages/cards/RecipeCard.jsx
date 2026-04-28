@@ -1,5 +1,19 @@
 import React from "react";
+const BASE_MEASUREMENTS = {
+  0: "Pound",
+  1: "Ounce",
+  2: "Cup",
+  3: "Teaspoon",
+};
 
+function formatIngredient(item) {
+  const measurement =
+    BASE_MEASUREMENTS[item.base_measure] ?? "Unknown";
+
+  return `${measurement}${
+    parseFloat(item.qty) !== 1 ? "s" : ""
+  } of ${item.name}`;
+}
 
 // Refactored my code from my cocktail website for this project. This should work for what we need it for.
 
@@ -17,7 +31,11 @@ export default function RecipeCard({
   canDelete,
   onReport,
   canReport,
-}) {
+}
+
+
+
+) {
   return (
     <article className="recipeCard">
       <div className="recipeCardContent">
@@ -59,7 +77,7 @@ export default function RecipeCard({
           <ul className="recipeCardList">
             {ingredients.map((item, idx) => (
               <li key={idx}>
-                <strong>{parseFloat(item.qty).toFixed(2)}</strong> units of {item.name} 
+                <strong>{parseFloat(item.qty).toFixed(2)}</strong> {formatIngredient(item)}
                 <span className="recipeCardCalories"> ({item.cal} cal)</span>
               </li>
             ))}
