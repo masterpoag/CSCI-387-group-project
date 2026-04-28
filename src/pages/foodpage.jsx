@@ -69,7 +69,14 @@ export default function RecipePage() {
       const userRecipes = userJson?.Data ?? [];
 
       const allRecipes = [...userRecipes, ...publicRecipes];
-      setRecipes(allRecipes);
+
+      // Remove duplicates
+      // Change "rid" to whatever unique field your recipes use
+      const uniqueRecipes = Array.from(
+        new Map(allRecipes.map((recipe) => [recipe.rid, recipe])).values()
+      );
+
+      setRecipes(uniqueRecipes);
     } catch {
       setFoodsError("Network error");
     }
