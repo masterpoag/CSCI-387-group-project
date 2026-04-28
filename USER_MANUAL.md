@@ -51,8 +51,8 @@ This manual has two audiences:
 
 - **System creators** who want to host their own copy of NutriFlow. See
   [Requirements and Instructions for System Creators](#requirements-and-instructions-for-system-creators).
-- **NutriFlow users** who want to use the live application. See
-  [Requirements for NutriFlow Users](#requirements-for-nutriflow-users).
+- **NutriFlow users** who want to use the live application.
+  [Requirements for NutriFlow Users](#requirements-for-nutriflow-users). This includes all site user types (Amdmin, Nutritionist, etc.).
 
 ---
 
@@ -69,6 +69,7 @@ NutriFlow.
 | Python    | 3.10 or newer |
 | MySQL     | 8.0 or newer (MariaDB 10.3+ also supported) |
 | npm       | Bundled with Node.js |
+| Ubuntu    | LTS 24.02 or newer | 
 
 ### Database Instructions
 
@@ -111,6 +112,8 @@ Open `src/backend/database.env` and replace the placeholders:
 To reset the database later, source
 [src/backend/Meal_Tracker_PROD_drop.sql](src/backend/Meal_Tracker_PROD_drop.sql)
 the same way to drop all tables.
+
+Note the database is not pre-seeded with `Meal_Tracker_PROD_create.sql`. System Creators will need to seed data into the database or rely on users to add new data.
 
 ### System Files Instructions
 
@@ -230,6 +233,7 @@ red.
 
 Click **Logout** in the top navigation bar at any time. Your session token is
 cleared and you are returned to a logged-out state.
+<img width="1920" height="1080" alt="ss_2026-04-28_15-07-31" src="https://github.com/user-attachments/assets/22d6ab44-1ae5-407a-8650-0c7494e2918e" />
 
 ### Theme Toggle
 
@@ -334,6 +338,7 @@ New Recipe modal opens.
 
 (4) switch the **Keep Private** switchbox if you
 want this recipe to be eligible for publishing.
+This changes the title to **Submit for Publishing**.
 <img width="2539" height="1278" alt="image" src="https://github.com/user-attachments/assets/ebdff121-e2fa-41d9-8c9d-1a3de54f5300" />
 
 (5) Click **Create Recipe**. The modal closes and the new recipe appears in
@@ -364,7 +369,6 @@ New Food modal with Food name field and Calories field labeled with the selected
 <img width="2547" height="1274" alt="image" src="https://github.com/user-attachments/assets/ea6bdacd-ab97-4419-b09a-93d933c25934" />
 
 
-
 (4) Click **Save food**. The new food is added to the recipe's ingredient
 table and becomes available in the food dropdown or cancel to stop making a new food.
 <img width="2542" height="1271" alt="image" src="https://github.com/user-attachments/assets/ee59a7b3-7ffb-497e-bbaa-b0bccebe66d0" />
@@ -378,31 +382,35 @@ recipe cards you are allowed to delete.
 
 (2) Click the **🗑** icon in the top-right of the recipe card.
 
-> ![Recipe card with the trash icon highlighted in the top-right](docs/images/delete-recipe.png)
+> <img width="1920" height="1080" alt="ss_2026-04-28_17-08-58" src="https://github.com/user-attachments/assets/f9ae0b2c-8e17-4ae8-97bf-c8576028f696" />
 >
 > *Figure 15 — Trash icon on a recipe card.*
 
 (3) A confirmation dialog appears asking *"Are you sure you want to delete
-this recipe?"* Click **OK** to confirm or **Cancel** to back out.
+this recipe?"* Click **OK** to confirm or **Cancel** to back out. Note: This
+confirmation dialog may appear differntly depending on browser choice.
+<img width="1920" height="1080" alt="ss_2026-04-28_17-08-58" src="https://github.com/user-attachments/assets/5a1c95b9-2730-4d55-b87a-d986f4576524" />
 
 (4) After confirmation, the recipe disappears from the grid.
 
 #### Report a Recipe
 
-If you see a public recipe that violates community standards, you can report
+If you see a public recipe that you believe vilotaes reasonable decentcy, you can report
 it for an admin to review.
 
 (1) On a public recipe card (badge shows **Global**), click the **🚩** icon
 in the top-right. The flag icon does not appear on personal recipes.
 
-> ![Public recipe card with the flag icon highlighted in the top-right](docs/images/report-recipe.png)
+> <img width="1920" height="1080" alt="ss_2026-04-28_17-08-58" src="https://github.com/user-attachments/assets/9c5bec01-9d7f-44b5-8da3-da2815e9b739" />
 >
 > *Figure 16 — Flag icon on a public recipe card.*
 
 (2) A confirmation dialog appears asking *"Are you sure you want to report
 this recipe?"* Click **OK** to continue.
+<img width="1920" height="1080" alt="ss_2026-04-28_17-13-14" src="https://github.com/user-attachments/assets/f0c3b9ef-2885-4782-aa84-ecbf5cc05c1e" />
 
 (3) When prompted, enter a short **name** for the report and click **OK**.
+<img width="1920" height="1080" alt="ss_2026-04-28_17-14-41" src="https://github.com/user-attachments/assets/42f932c7-8fee-44e8-bac1-551ac64aded5" />
 
 (4) When prompted, enter a **description** explaining why you are reporting
 the recipe and click **OK**.
