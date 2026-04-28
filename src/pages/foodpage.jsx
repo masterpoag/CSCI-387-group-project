@@ -475,7 +475,7 @@ async function handleCreateRecipe() {
                   />
                 </div>
 
-                {(accountType === 0 || accountType === 2) && (
+                {(
                   <div className="createRecipeToggle">
                     <label className="createRecipeToggleLabel">
                       <input
