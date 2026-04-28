@@ -148,6 +148,16 @@ Other npm scripts:
 | `npm run preview` | Serve the production build locally       |
 | `npm run lint`    | Run ESLint on the project                |
 
+(4)
+In the root directory, create a file called `.env` with the following text field:
+```env
+VITE_API_BASE="<PROTOCOL>://<DATABASE_IP>:<PORT>"
+```
+
+Replace with the your respective ip and port (commonly: `htpp://localhost:8000`).
+> [!NOTE]
+> If this enviroment variable fails to be loaded, the project will fall back to `https://gp.vroey.us`
+
 ### Backend Instructions
 
 The Python backend uses FastAPI and lives in
