@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import RecipeCard from "./cards/RecipeCard";
-import SearchableSelect from "../components/SearchableSelect";
-import NewFoodModal from "../components/NewFoodModal";
 
 
 // TODO Add: allow admins to delete public recipes.
@@ -20,24 +18,20 @@ const IMPERIAL_BASE_UNITS = [
 ];
 
 
-const NEW_FOOD_VALUE = "__new_food__";
-
 export default function RecipePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [foodsError, setFoodsError] = useState("");
 
-  const [extraFoods, setExtraFoods] = useState([]);
-
   const [selectedUnit, setSelectedUnit] = useState(null);
-  const [selectedFood, setSelectedFood] = useState(null);
 
-  const [newFoodModalOpen, setNewFoodModalOpen] = useState(false);
   const [createRecipeModalOpen, setCreateRecipeModalOpen] = useState(false);
   const [formError, setFormError] = useState("");
   const [accountType, setAccountType] = useState(null);
 
   const [recipeFoods, setRecipeFoods] = useState([]);
+  const [availableFoods, setAvailableFoods] = useState([]);
+  const [foodsLoading, setFoodsLoading] = useState(false);
 
   const [newRecipe, setNewRecipe] = useState({
     rname: "",
@@ -86,42 +80,7 @@ export default function RecipePage() {
     );
   }, [recipes, searchTerm]);
 
-  // ================= FOODS =================
-  const allFoodNames = useMemo(() => {
-    const foods = [];
-
-    recipes.forEach((r) => {
-      r.ingredients?.forEach((i) => {
-        if (i?.name) foods.push(i.name);
-      });
-    });
-
-    extraFoods.forEach((f) => foods.push(f.name));
-
-    return [...new Set(foods)];
-  }, [recipes, extraFoods]);
-
-  const foodOptions = useMemo(() => {
-    return [
-      ...allFoodNames.map((f) => ({ value: f, label: f })),
-      {
-        value: NEW_FOOD_VALUE,
-        label: "+ New food…",
-        disabled: selectedUnit === null,
-      },
-    ];
-  }, [allFoodNames, selectedUnit]);
-
-  const unitOptions = IMPERIAL_BASE_UNITS.map((u) => ({
-    value: u.value,
-    label: u.label,
-  }));
-
-  const selectedUnitLabel =
-    IMPERIAL_BASE_UNITS.find((u) => u.value === selectedUnit)?.label ??
-    "selected unit";
-
-  /* ================= DELETE ================= */
+  // ================= DELETE =================
   async function handleDeleteRecipe(rid) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this recipe?"
@@ -206,48 +165,12 @@ export default function RecipePage() {
 
   const canReportRecipe = (recipe) =>
     recipe.isPublic;
-  function handleFoodChange(val) {
-    if (val === NEW_FOOD_VALUE) {
-      if (selectedUnit === null) return;
-      setNewFoodModalOpen(true);
-      return;
-    }
-
-    setSelectedFood(val);
-
-    setRecipeFoods((prev) => [
-      ...prev,
-      {
-        fname: val,
-        qty: 1,
-        isNew: extraFoods.some((f) => f.name === val),
-        cal: extraFoods.find((f) => f.name === val)?.cal ?? 0,
-        base_measurement: selectedUnit,
-      },
-    ]);
-  }
-
   function updateQty(index, value) {
     const val = Number(value);
 
     setRecipeFoods((prev) =>
       prev.map((f, i) => (i === index ? { ...f, qty: val } : f))
     );
-  }
-
-  function handleNewFoodSave({ name, cal }) {
-    setExtraFoods((prev) => [...prev, { name, cal }]);
-
-    setRecipeFoods((prev) => [
-      ...prev,
-      {
-        fname: name,
-        qty: 1,
-        isNew: true,
-        cal,
-        base_measurement: selectedUnit,
-      },
-    ]);
   }
 
   function buildCreateRecipePayload() {
@@ -261,11 +184,96 @@ export default function RecipePage() {
       foods: recipeFoods,
     };
   }
-  function handleCreateRecipeClick() {
-    const token = localStorage.getItem("token");
-    const username = localStorage.getItem("username");
 
-    if (!token || !username) {
+  async function loadFoods() {
+    setFoodsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/get-foods`);
+      const json = await res.json();
+
+      if (json?.Result === "Success") {
+        setAvailableFoods(json.Data ?? []);
+      } else {
+        console.error("Failed to load foods:", json?.Message);
+      }
+    } catch {
+      console.error("Network error loading foods");
+    } finally {
+      setFoodsLoading(false);
+    }
+  }
+
+  function handleCreateRecipeClick() {
+
+async function handleCreateRecipe() {
+    setFormError("");
+
+    if (!newRecipe.rname.trim()) {
+      setFormError("Recipe name is required");
+      return;
+    }
+
+    if (recipeFoods.length ===0) {
+      setFormError("At least one food item is required");
+      return;
+    }
+
+    try {
+      const payload = buildCreateRecipePayload();
+
+      console.log("Creating recipe with payload:", payload);
+
+      const res = await fetch(
+        `${API_BASE}/api/create-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const json = await res.json();
+
+      if (json?.Result === "Success") {
+        setCreateRecipeModalOpen(false);
+        setRecipeFoods([]);
+        setNewRecipe({ rname: "", desc: "", instruct: "", isPublishable: false });
+        setSelectedUnit(null);
+        loadRecipes();
+      } else {
+        setFormError(json?.Message || "Failed to create recipe");
+      }
+    } catch (err) {
+      setFormError("Network error. Please try again.");
+    }
+  }
+
+  function handleRemoveFood(index) {
+    setRecipeFoods((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  async function loadAccountType() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setAccountType(null);
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/get-auth-level?huid=${token}`);
+      const json = await res.json();
+      if (json?.Result === "Success" && json.Data?.[0]?.account_type !== undefined) {
+        setAccountType(json.Data[0].account_type);
+      } else {
+        setAccountType(null);
+      }
+    } catch {
+      setAccountType(null);
+    }
+  }
+
+  async function handleCreateRecipeClick() {
+
+    if (!localStorage.getItem("username") || !localStorage.getItem("token")) {
       const confirmed = window.confirm("You need to log in to create a recipe. Would you like to log in now?");
       if (confirmed) {
         window.location.href = "/~group3sp26/login";
@@ -273,16 +281,9 @@ export default function RecipePage() {
       return;
     }
 
+    await loadFoods();
     setCreateRecipeModalOpen(true);
   }
-
-  async function handleCreateRecipe() {
-    setFormError("");
-
-    if (!newRecipe.rname.trim()) {
-      setFormError("Recipe name is required");
-      return;
-    }
 
     if (recipeFoods.length === 0) {
       setFormError("At least one food item is required");
@@ -500,23 +501,42 @@ export default function RecipePage() {
 
                 <div className="createRecipeFoodSelectors">
                   <div className="createRecipeSelector">
-                    <SearchableSelect
-                      label="Unit"
-                      options={unitOptions}
-                      value={selectedUnit}
-                      onChange={(v) => setSelectedUnit(Number(v))}
-                      placeholder="Select unit..."
-                    />
+                    <label className="createRecipeLabel">Unit</label>
+                    <select
+                      className="adminUserActionSelect"
+                      value={selectedUnit ?? ""}
+                      onChange={(e) => setSelectedUnit(Number(e.target.value))}
+                    >
+                      <option value="">Select unit...</option>
+                      {IMPERIAL_BASE_UNITS.map((u) => (
+                        <option key={u.value} value={u.value}>{u.label}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="createRecipeSelector">
-                    <SearchableSelect
-                      label="Food"
-                      options={foodOptions}
-                      value={selectedFood}
-                      onChange={handleFoodChange}
-                      placeholder="Search foods..."
-                      disabled={selectedUnit === null}
-                    />
+                    <label className="createRecipeLabel">Food</label>
+                    <select
+                      className="adminUserActionSelect"
+                      value={selectedFood ?? ""}
+                      onChange={(e) => {
+                        const food = availableFoods.find(f => f.name === e.target.value);
+                        if (food && selectedUnit !== null) {
+                          setRecipeFoods(prev => [...prev, {
+                            fname: food.name,
+                            qty: 1,
+                            isNew: false,
+                            cal: food.cal,
+                            base_measure: selectedUnit,
+                          }]);
+                        }
+                      }}
+                      disabled={selectedUnit === null || foodsLoading}
+                    >
+                      <option value="">{foodsLoading ? "Loading..." : "Select food..."}</option>
+                      {availableFoods.map((f) => (
+                        <option key={f.fid} value={f.name}>{f.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -545,7 +565,7 @@ export default function RecipePage() {
                           {food.cal} cal
                         </span>
                         <span className="tableColUnit">
-                          {IMPERIAL_BASE_UNITS.find(u => u.value === food.base_measurement)?.label}
+                          {IMPERIAL_BASE_UNITS.find(u => u.value === food.base_measure)?.label}
                         </span>
                         <button
                           type="button"
