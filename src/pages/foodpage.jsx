@@ -165,11 +165,11 @@ export default function RecipePage() {
       return;
     }
 
+    const reportName = window.prompt("Enter a name for this report:");
+    if (reportName === null || !reportName.trim()) return;
+
     const desc = window.prompt("Please enter a description for the report:");
     if (desc === null) return;
-
-    const recipe = recipes.find(r => r.rid === rid);
-    if (!recipe) return;
 
     try {
       const res = await fetch(
@@ -178,9 +178,9 @@ export default function RecipePage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            rname: recipe.name,
+            rname: reportName.trim(),
             desc: desc,
-            rep_type: "recipe",
+            rep_type: "rcp",
             obj_id: rid,
           }),
         }

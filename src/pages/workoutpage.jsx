@@ -272,11 +272,11 @@ export default function WorkoutPage() {
       return;
     }
 
+    const reportName = window.prompt("Enter a name for this report:");
+    if (reportName === null || !reportName.trim()) return;
+
     const desc = window.prompt("Please enter a description for the report:");
     if (desc === null) return;
-
-    const workout = workouts.find(w => w.wid === wid);
-    if (!workout) return;
 
     try {
       const res = await fetch(
@@ -285,9 +285,9 @@ export default function WorkoutPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            rname: workout.name,
+            rname: reportName.trim(),
             desc: desc,
-            rep_type: "workout",
+            rep_type: "wrk",
             obj_id: wid,
           }),
         }
