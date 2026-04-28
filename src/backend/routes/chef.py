@@ -34,6 +34,7 @@ async def get_publishable_recipes(huid: float, uname: str):
                 ingredients = cursor.fetchall()
 
                 recipe_list.append({
+                    "rid": int(recipe["rid"]), # type: ignore
                     "name": recipe["name"], # type: ignore
                     "desc": recipe["desc"], # type: ignore
                     "instruct": recipe["instruct"], # type: ignore
@@ -87,6 +88,10 @@ async def set_recipe_publicity(huid: float, uname: str, rid: int, isPublic: bool
 
             stmt = "UPDATE Recipe SET isPublic = %s WHERE rid = %s"
             cursor.execute(stmt, [isPublic, rid])
+
+            if bool(row["isPublishable"]): # type: ignore
+                stmt = "UPDATE Recipe SET isPublishable = FALSE"
+                cursor.execute(stmt)    
 
             connection.commit()
 

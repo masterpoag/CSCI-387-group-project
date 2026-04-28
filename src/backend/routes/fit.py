@@ -81,6 +81,10 @@ async def set_workout_publicity(huid: float, uname: str, wid: int, isPublic: boo
             stmt = "UPDATE Workout SET isPublic = %s WHERE wid = %s"
             cursor.execute(stmt, [isPublic, wid])
 
+            if bool(row["isPublishable"]): # type: ignore
+                stmt = "UPDATE Recipe SET isPublishable = FALSE"
+                cursor.execute(stmt)
+
             connection.commit()
 
             res.data["Result"] = "Success"

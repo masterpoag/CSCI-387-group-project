@@ -17,7 +17,7 @@ async def report_content(huid: float, uname: str, nr: NewReport):
             if type(uid) != int:
                 return uid
 
-            stmt = "SELECT FROM Report WHERE User_uid = %s AND obj_id = %s"
+            stmt = "SELECT * FROM Report WHERE User_uid = %s AND obj_id = %s"
             cursor.execute(stmt, [uid, nr.obj_id])
 
             if (len(cursor.fetchall()) != 0):
@@ -429,6 +429,7 @@ async def get_public_recipe():
                 ingredients = cursor.fetchall()
 
                 recipe_list.append({
+                    "rid": recipe["rid"], #type: ignore
                     "name": recipe["name"], # type: ignore
                     "desc": recipe["desc"], # type: ignore
                     "instruct": recipe["instruct"], # type: ignore
