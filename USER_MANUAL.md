@@ -36,7 +36,7 @@ library, save workout routines, and browse public content shared by chefs and
 fitness instructors.
 
 The production application is hosted at
-**https://gp.vroey.us/~group3sp26/** with the API at **https://gp.vroey.us**.
+**https://turing.cs.olemiss.edu/~group3sp26** with the API at **https://gp.vroey.us**.
 
 This manual has two audiences:
 
@@ -174,7 +174,7 @@ The interactive API docs are available at `http://localhost:8000/docs`.
 ## Requirements for NutriFlow Users
 
 The next sections are for people using the live NutriFlow application. Open
-**https://gp.vroey.us/~group3sp26/** in any modern browser to begin.
+**https://turing.cs.olemiss.edu/~group3sp26** in any modern browser to begin.
 
 ### Account Setup
 
@@ -260,14 +260,14 @@ The Recipes page (URL: `/food`) is where users browse and create recipes.
 #### Browse Recipes
 
 (1) Click **Recipes** in the top navigation bar.
+<img width="2554" height="1271" alt="image" src="https://github.com/user-attachments/assets/cf2cf8a6-99e9-46de-a28d-1dffd025a9f7" />
 
 (2) Use the **search box** to filter recipes by name, description, or
 instructions.
+<img width="2545" height="1276" alt="image" src="https://github.com/user-attachments/assets/6ff88da2-d507-4fb6-9509-28285a4985ef" />
 
-> ![Recipes page with search box, Create Recipe button, results counter, and a grid of recipe cards](docs/images/recipes-page.png)
->
-> *Figure 5 — Recipes page. The counter under the search box shows how many
-> recipes match the current search.*
+*Figure 5 — Recipes page. The counter under the search box shows how many recipes match the current search.*
+<img width="2536" height="1272" alt="image" src="https://github.com/user-attachments/assets/b1bc7707-a3bb-448c-9b8b-f45d1e8ca10e" />
 
 Each recipe card displays:
 
@@ -277,9 +277,13 @@ Each recipe card displays:
 - The instructions (if provided).
 - A badge showing **Global** for public recipes or **Personal** for your own
   private recipes.
+- A button to allow for deletion or reporting depending on if you own it or not 
+<img width="2545" height="1272" alt="image" src="https://github.com/user-attachments/assets/19bda95a-b0c2-4b55-b899-c7a0f55b5915" />
+
 
 If no recipes match the search, the page shows the message *"No recipes
 found — Try a different keyword."*
+<img width="2545" height="1274" alt="image" src="https://github.com/user-attachments/assets/0a8e4980-33e7-4bb8-a7d1-47645787ad2f" />
 
 #### Create a Recipe
 
@@ -287,11 +291,9 @@ You must be logged in to create a recipe.
 
 (1) Click **Create Recipe +** at the top-left of the Recipes page. The Create
 New Recipe modal opens.
+<img width="2543" height="1274" alt="image" src="https://github.com/user-attachments/assets/c3bcdccd-94cf-4158-b1ba-1d5965720d33" />
 
-> ![Create New Recipe modal with Recipe Name, Description, Instructions, Unit dropdown, Food dropdown, and ingredient table](docs/images/create-recipe-modal.png)
->
-> *Figure 6 — Create New Recipe modal. Required fields are marked with an
-> asterisk.*
+
 
 (2) Fill in the recipe details:
 
@@ -300,16 +302,21 @@ New Recipe modal opens.
 | Recipe Name   | Yes      | For example, *Chicken Stir Fry*.            |
 | Description   | No       | A short summary of the recipe.              |
 | Instructions  | No       | Step-by-step cooking directions.            |
+<img width="2542" height="1272" alt="image" src="https://github.com/user-attachments/assets/0e711550-425c-4a5d-824c-ad9a2bd823e8" />
+
 
 (3) Add at least one ingredient:
 
   a. Choose a **Unit** from the dropdown (Pound, Ounce, Cup, or Teaspoon).
+  <img width="2535" height="1275" alt="image" src="https://github.com/user-attachments/assets/e098c4d7-4163-4e12-a711-42beab42f692" />
 
   b. Choose a **Food** from the searchable dropdown. If your food is not in
      the list, click **+ New food…** and follow [Add a New Food](#add-a-new-food).
+  <img width="2543" height="1279" alt="image" src="https://github.com/user-attachments/assets/029d74a6-25e7-4159-84b2-25c4f7de1974" />
 
   c. The food is added to the ingredient table. Edit its **Quantity** in the
      table. Click the **×** button to remove an ingredient.
+<img width="2545" height="1277" alt="image" src="https://github.com/user-attachments/assets/b7b21e89-96dc-4408-90e5-58a3a95611da" />
 
 > ![Ingredient table inside the Create Recipe modal showing two foods with quantity, calories, unit, and remove button](docs/images/recipe-ingredients.png)
 >
