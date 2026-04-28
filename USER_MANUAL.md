@@ -323,15 +323,18 @@ New Recipe modal opens.
 > *Figure 7 — Ingredient table. Edit quantity directly in the row. Click ×
 > to remove an ingredient.*
 
-(4) **Chef and Admin accounts only:** check the **Public Recipe** box if you
+(4) switch the **Keep Private** switchbox if you
 want this recipe to be eligible for publishing.
+<img width="2539" height="1278" alt="image" src="https://github.com/user-attachments/assets/ebdff121-e2fa-41d9-8c9d-1a3de54f5300" />
 
 (5) Click **Create Recipe**. The modal closes and the new recipe appears in
 the grid. Click **Cancel** to close without saving.
+<img width="2540" height="1274" alt="image" src="https://github.com/user-attachments/assets/5f790428-1263-4e78-b360-0062439ddf71" />
 
 If the recipe name is missing, the recipe has no ingredients, or you already
-have a recipe with the same name, an error message appears at the top of the
+have a recipe with the same name, an error message appears at the bottom of the
 modal.
+<img width="2540" height="1270" alt="image" src="https://github.com/user-attachments/assets/401512c1-9c5f-4430-988f-778632abe4c7" />
 
 #### Add a New Food
 
@@ -340,18 +343,22 @@ during recipe creation.
 
 (1) In the Create Recipe modal, select a **Unit** first (the New Food option
 is disabled until a unit is selected).
-
+<img width="2535" height="1275" alt="image" src="https://github.com/user-attachments/assets/e098c4d7-4163-4e12-a711-42beab42f692" />
 (2) Open the **Food** dropdown and click **+ New food…**.
+<img width="2543" height="1277" alt="image" src="https://github.com/user-attachments/assets/ed50ebd0-1871-4037-81af-f759d623b04c" />
 
-> ![New Food modal with Food name field and Calories field labeled with the selected unit](docs/images/new-food-modal.png)
->
-> *Figure 8 — New Food modal. The calorie label updates to match the unit you
-> selected.*
+New Food modal with Food name field and Calories field labeled with the selected unit
+<img width="2541" height="1273" alt="image" src="https://github.com/user-attachments/assets/e9b34735-c93f-48e9-aa97-4353d4ba8fc6" />
+
 
 (3) Enter the **Food name** and **Calories per 1 [unit]**.
+<img width="2547" height="1274" alt="image" src="https://github.com/user-attachments/assets/ea6bdacd-ab97-4419-b09a-93d933c25934" />
+
+
 
 (4) Click **Save food**. The new food is added to the recipe's ingredient
-table and becomes available in the food dropdown.
+table and becomes available in the food dropdown or cancel to stop making a new food.
+<img width="2542" height="1271" alt="image" src="https://github.com/user-attachments/assets/ee59a7b3-7ffb-497e-bbaa-b0bccebe66d0" />
 
 ### Workouts
 
