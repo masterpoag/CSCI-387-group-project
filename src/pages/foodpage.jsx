@@ -1,12 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import RecipeCard from "./cards/RecipeCard";
-
-
-// TODO Add: allow admins to delete public recipes.
-
-//TODO STRECH GOALS:
-// - Allow users to delete their recipes
-
+import NewFoodModal from "../components/NewFoodModal";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
@@ -17,21 +11,24 @@ const IMPERIAL_BASE_UNITS = [
   { value: 3, label: "Teaspoon (tsp)" },
 ];
 
-
 export default function RecipePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [recipes, setRecipes] = useState([]);
   const [foodsError, setFoodsError] = useState("");
 
   const [selectedUnit, setSelectedUnit] = useState(null);
-
   const [createRecipeModalOpen, setCreateRecipeModalOpen] = useState(false);
+
   const [formError, setFormError] = useState("");
   const [accountType, setAccountType] = useState(null);
 
   const [recipeFoods, setRecipeFoods] = useState([]);
   const [availableFoods, setAvailableFoods] = useState([]);
   const [foodsLoading, setFoodsLoading] = useState(false);
+
+  const [newFoodModalOpen, setNewFoodModalOpen] = useState(false);
+
+
 
   const [newRecipe, setNewRecipe] = useState({
     rname: "",
@@ -43,13 +40,14 @@ export default function RecipePage() {
   // ================= LOAD RECIPES =================
   async function loadRecipes() {
     try {
-      const headers = {
-        "Content-Type": "application/json",
-      };
+      const headers = { "Content-Type": "application/json" };
 
       const [publicRes, userRes] = await Promise.all([
         fetch(`${API_BASE}/api/get-public-recipe`, { headers }),
-        fetch(`${API_BASE}/api/get-user-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`, { headers }),
+        fetch(
+          `${API_BASE}/api/get-user-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
+          { headers }
+        ),
       ]);
 
       const publicJson = await publicRes.json();
@@ -58,8 +56,7 @@ export default function RecipePage() {
       const publicRecipes = publicJson?.Data ?? [];
       const userRecipes = userJson?.Data ?? [];
 
-      const allRecipes = [...userRecipes, ...publicRecipes];
-      setRecipes(allRecipes);
+      setRecipes([...userRecipes, ...publicRecipes]);
     } catch {
       setFoodsError("Network error");
     }
@@ -67,110 +64,110 @@ export default function RecipePage() {
 
   useEffect(() => {
     loadRecipes();
+    loadAccountType();
   }, []);
 
   // ================= FILTER =================
   const filteredRecipes = useMemo(() => {
-    const term = searchTerm.toLowerCase();
+  const term = searchTerm.toLowerCase();
 
-    return recipes.filter((r) =>
-      r.name?.toLowerCase().includes(term) ||
-      r.desc?.toLowerCase().includes(term) ||
-      r.instruct?.toLowerCase().includes(term)
+  return recipes.filter((r) =>
+      (r.nr?.rname ?? "").toLowerCase().includes(term) ||
+      (r.nr?.desc ?? "").toLowerCase().includes(term) ||
+      (r.nr?.instruct ?? "").toLowerCase().includes(term)
     );
   }, [recipes, searchTerm]);
 
-  // ================= DELETE =================
-  async function handleDeleteRecipe(rid) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this recipe?"
-    );
-    if (!confirmed) return;
+  // ================= ACCOUNT TYPE =================
+  async function loadAccountType() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
     try {
-      const res = await fetch(
-        `${API_BASE}/api/delete-recipe?huid=${localStorage.getItem(
-          "token"
-        )}&uname=${localStorage.getItem("username")}&rid=${rid}`,
-        { method: "GET" }
-      );
-
+      const res = await fetch(`${API_BASE}/api/get-auth-level?huid=${token}`);
       const json = await res.json();
 
       if (json?.Result === "Success") {
-        loadRecipes();
-      } else {
-        console.error(json?.Message);
+        setAccountType(json.Data?.[0]?.account_type ?? null);
       }
-    } catch {
-      console.error("Network error");
-    }
+    } catch {}
   }
 
-  /* ================= PERMISSION ================= */
   const isAdmin = accountType === 0 || accountType === 3;
 
-  /* ================= REPORT ================= */
-  async function handleReportRecipe(rid) {
-    console.log("Reporting recipe with rid:", rid);
-    const confirmed = window.confirm(
-      "Are you sure you want to report this recipe?"
-    );
+  // ================= DELETE =================
+  async function handleDeleteRecipe(rid) {
+    const confirmed = window.confirm("Are you sure you want to delete this recipe?");
     if (!confirmed) return;
 
+    const id = rid ?? null;
+    if (!id) return console.error("Missing recipe id");
+
+    await fetch(
+      `${API_BASE}/api/delete-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}&rid=${id}`,
+      { method: "GET" }
+    );
+
+    loadRecipes();
+  }
+
+  // ================= REPORT =================
+  async function handleReportRecipe(rid) {
     const token = localStorage.getItem("token");
     const uname = localStorage.getItem("username");
-    if (!token || !uname) {
-      alert("Please log in to report content.");
-      return;
-    }
 
-    const reportName = window.prompt("Enter a name for this report:");
-    if (reportName === null || !reportName.trim()) return;
+    if (!token || !uname) return alert("Login required");
 
-    const desc = window.prompt("Please enter a description for the report:");
-    if (desc === null) return;
+    const id = rid ?? null;
+    if (!id) return alert("Missing recipe id");
+
+    const rname = window.prompt("Report title:");
+    const desc = window.prompt("Description:");
+
+    if (!rname || !desc) return;
+
+    await fetch(
+      `${API_BASE}/api/report-content?huid=${token}&uname=${uname}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rname,
+          desc,
+          rep_type: "rcp",
+          obj_id: id,
+        }),
+      }
+    );
+  }
+
+  const canDeleteRecipe = (recipe) => !recipe.nr?.isPublic || isAdmin;
+  const canReportRecipe = (recipe) => recipe.nr?.isPublic;
+
+  // ================= FOOD =================
+  async function loadFoods() {
+    setFoodsLoading(true);
 
     try {
-      const res = await fetch(
-        `${API_BASE}/api/report-content?huid=${token}&uname=${uname}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            rname: reportName.trim(),
-            desc: desc,
-            rep_type: "rcp",
-            obj_id: rid,
-          }),
-        }
-      );
-
+      const res = await fetch(`${API_BASE}/api/get-foods`);
       const json = await res.json();
-      if (json?.Result === "Success") {
-        alert("Recipe reported successfully.");
-      } else {
-        console.error(json?.Message);
-        alert("Failed to report recipe: " + (json?.Message || "Unknown error"));
-      }
-    } catch {
-      console.error("Network error");
-      alert("Network error while reporting recipe.");
+
+      setAvailableFoods(json?.Data ?? []);
+    } finally {
+      setFoodsLoading(false);
     }
   }
 
-  /* ================= PERMISSION ================= */
-  const canDeleteRecipe = (recipe) =>
-    !recipe.isPublic || (isAdmin && recipe.isPublic);
-
-  const canReportRecipe = (recipe) =>
-    recipe.isPublic;
   function updateQty(index, value) {
-    const val = Number(value);
-
     setRecipeFoods((prev) =>
-      prev.map((f, i) => (i === index ? { ...f, qty: val } : f))
+      prev.map((f, i) =>
+        i === index ? { ...f, qty: Number(value) } : f
+      )
     );
+  }
+
+  function handleRemoveFood(index) {
+    setRecipeFoods((prev) => prev.filter((_, i) => i !== index));
   }
 
   function buildCreateRecipePayload() {
@@ -185,96 +182,32 @@ export default function RecipePage() {
     };
   }
 
-  async function loadFoods() {
-    setFoodsLoading(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/get-foods`);
-      const json = await res.json();
+  const selectedUnitLabel =
+    IMPERIAL_BASE_UNITS.find((u) => u.value === selectedUnit)?.label ??
+    "selected unit";
 
-      if (json?.Result === "Success") {
-        setAvailableFoods(json.Data ?? []);
-      } else {
-        console.error("Failed to load foods:", json?.Message);
-      }
-    } catch {
-      console.error("Network error loading foods");
-    } finally {
-      setFoodsLoading(false);
-    }
+  function handleNewFoodSave({ name, cal }) {
+    setExtraFoods((prev) => [...prev, { name, cal }]);
+
+    setRecipeFoods((prev) => [
+      ...prev,
+      {
+        fname: name,
+        qty: 1,
+        isNew: true,
+        cal,
+        base_measurement: selectedUnit,
+      },
+    ]);
   }
 
-  function handleCreateRecipeClick() {
-
-async function handleCreateRecipe() {
-    setFormError("");
-
-    if (!newRecipe.rname.trim()) {
-      setFormError("Recipe name is required");
-      return;
-    }
-
-    if (recipeFoods.length ===0) {
-      setFormError("At least one food item is required");
-      return;
-    }
-
-    try {
-      const payload = buildCreateRecipePayload();
-
-      console.log("Creating recipe with payload:", payload);
-
-      const res = await fetch(
-        `${API_BASE}/api/create-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
+  // ================= CREATE RECIPE =================
+  async function handleCreateRecipeClick() {
+    if (!localStorage.getItem("username") || !localStorage.getItem("token")) {
+      const confirmed = window.confirm(
+        "You need to log in to create a recipe. Would you like to log in now?"
       );
 
-      const json = await res.json();
-
-      if (json?.Result === "Success") {
-        setCreateRecipeModalOpen(false);
-        setRecipeFoods([]);
-        setNewRecipe({ rname: "", desc: "", instruct: "", isPublishable: false });
-        setSelectedUnit(null);
-        loadRecipes();
-      } else {
-        setFormError(json?.Message || "Failed to create recipe");
-      }
-    } catch (err) {
-      setFormError("Network error. Please try again.");
-    }
-  }
-
-  function handleRemoveFood(index) {
-    setRecipeFoods((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  async function loadAccountType() {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setAccountType(null);
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE}/api/get-auth-level?huid=${token}`);
-      const json = await res.json();
-      if (json?.Result === "Success" && json.Data?.[0]?.account_type !== undefined) {
-        setAccountType(json.Data[0].account_type);
-      } else {
-        setAccountType(null);
-      }
-    } catch {
-      setAccountType(null);
-    }
-  }
-
-  async function handleCreateRecipeClick() {
-
-    if (!localStorage.getItem("username") || !localStorage.getItem("token")) {
-      const confirmed = window.confirm("You need to log in to create a recipe. Would you like to log in now?");
       if (confirmed) {
         window.location.href = "/~group3sp26/login";
       }
@@ -285,6 +218,14 @@ async function handleCreateRecipe() {
     setCreateRecipeModalOpen(true);
   }
 
+    async function handleCreateRecipe() {
+    setFormError("");
+
+    if (!newRecipe.rname.trim()) {
+      setFormError("Recipe name is required");
+      return;
+    }
+
     if (recipeFoods.length === 0) {
       setFormError("At least one food item is required");
       return;
@@ -292,8 +233,6 @@ async function handleCreateRecipe() {
 
     try {
       const payload = buildCreateRecipePayload();
-
-      console.log("Creating recipe with payload:", payload);
 
       const res = await fetch(
         `${API_BASE}/api/create-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
@@ -309,54 +248,21 @@ async function handleCreateRecipe() {
       if (json?.Result === "Success") {
         setCreateRecipeModalOpen(false);
         setRecipeFoods([]);
-        setNewRecipe({ rname: "", desc: "", instruct: "", isPublic: false });
-        setSelectedUnit(null);
-        setSelectedFood(null);
+
+        setNewRecipe({
+          rname: "",
+          desc: "",
+          instruct: "",
+          isPublishable: false,
+        });
+
         loadRecipes();
       } else {
         setFormError(json?.Message || "Failed to create recipe");
       }
-    } catch (err) {
+    } catch {
       setFormError("Network error. Please try again.");
     }
-  }
-
-  function handleRemoveFood(index) {
-    setRecipeFoods((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  async function loadAccountType() {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setAccountType(null);
-      return;
-    }
-    try {
-      const res = await fetch(`${API_BASE}/api/get-auth-level?huid=${token}`);
-      const json = await res.json();
-      if (json?.Result === "Success" && json.Data?.[0]?.account_type !== undefined) {
-        setAccountType(json.Data[0].account_type);
-      } else {
-        setAccountType(null);
-      }
-    } catch {
-      setAccountType(null);
-    }
-  }
-
-  async function handleCreateRecipeClick() {
-
-
-    if (!localStorage.getItem("username") || !localStorage.getItem("token")) {
-      const confirmed = window.confirm("You need to log in to create a recipe. Would you like to log in now?");
-      if (confirmed) {
-        window.location.href = "/~group3sp26/login";
-      }
-      return;
-    }
-
-    await loadAccountType();
-    setCreateRecipeModalOpen(true);
   }
 
   // ================= UI =================
