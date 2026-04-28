@@ -17,6 +17,9 @@ ALTER TABLE Quantity
 ALTER TABLE Quantity
     DROP FOREIGN KEY rec_food_Food;
 
+ALTER TABLE Report
+    DROP FOREIGN KEY Report_User;
+
 -- tables
 DROP TABLE Admin;
 
@@ -29,6 +32,8 @@ DROP TABLE Recipe;
 DROP TABLE User;
 
 DROP TABLE Workout;
+
+DROP TABLE Report;
 
 -- End of file.
 

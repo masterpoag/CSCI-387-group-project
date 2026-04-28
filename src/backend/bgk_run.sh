@@ -1,4 +1,6 @@
 #!/bin/bash
+source /home/group3/CSCI-387-group-project/src/backend/venv/bin/activate
+
 timestamp=$(date +%F_%H-%M-%S)
 mode="empty"
 if [ -z "$1" ]; then

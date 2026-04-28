@@ -34,6 +34,7 @@ CREATE TABLE Recipe (
     instruct text  NULL,
     isPublic bool  NOT NULL,
     User_uid int  NOT NULL,
+    isPublishable bool NOT NULL,
     CONSTRAINT Recipe_pk PRIMARY KEY (rid)
 );
 
@@ -53,10 +54,23 @@ CREATE TABLE User (
 CREATE TABLE Workout (
     wid int  NOT NULL AUTO_INCREMENT,
     User_uid int  NOT NULL,
+    wname text NOT NULL,
     instructions text  NOT NULL,
-    cal int  NOT NULL,
     isPublic bool  NOT NULL,
+    isPublishable bool NOT NULL,
     CONSTRAINT Workout_pk PRIMARY KEY (wid)
+);
+
+-- Table: Report
+CREATE TABLE Report (
+    repid int NOT NULL AUTO_INCREMENT,
+    User_uid int NOT NULL,
+    rname text NOT NULL,
+    descript text NOT NULL,
+    rep_type varchar(3) NOT NULL,
+    obj_id int NOT NULL,
+    timestub timestamp NOT NULL,
+    CONSTRAINT Report_pk PRIMARY KEY (repid)
 );
 
 -- foreign keys
@@ -79,6 +93,10 @@ ALTER TABLE Quantity ADD CONSTRAINT portion_Recipe FOREIGN KEY portion_Recipe (R
 -- Reference: rec_food_Food (table: Quantity)
 ALTER TABLE Quantity ADD CONSTRAINT rec_food_Food FOREIGN KEY rec_food_Food (Food_fid)
     REFERENCES Food (fid);
+
+-- Reference: Report_User (table: Report)
+ALTER TABLE Report ADD CONSTRAINT Report_User FOREIGN KEY Report_User (User_uid)
+    REFERENCES User (uid);
 
 -- End of file.
 
