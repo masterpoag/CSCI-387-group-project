@@ -335,9 +335,6 @@ export default function AdminPage() {
                       <p className="recipeCardDesc">
                         <strong>Reported by:</strong> {report.uname}
                       </p>
-                      <p className="recipeCardDesc">
-                        <strong>Date:</strong> {report.timestub}
-                      </p>
                     </div>
 
                     {report.obj && (
