@@ -21,9 +21,18 @@
     - [Browse Recipes](#browse-recipes)
     - [Create a Recipe](#create-a-recipe)
     - [Add a New Food](#add-a-new-food)
+    - [Delete a Recipe](#delete-a-recipe)
+    - [Report a Recipe](#report-a-recipe)
   - [Workouts](#workouts)
     - [Browse Workouts](#browse-workouts)
     - [Create a Workout](#create-a-workout)
+    - [Delete a Workout](#delete-a-workout)
+    - [Report a Workout](#report-a-workout)
+  - [Nutritionist Dashboard](#nutritionist-dashboard)
+  - [Gym Instructor Dashboard](#gym-instructor-dashboard)
+  - [Admin Dashboard](#admin-dashboard)
+    - [Manage Users](#manage-users)
+    - [Review Reports](#review-reports)
   - [Account Roles](#account-roles)
 
 ---
@@ -360,6 +369,49 @@ New Food modal with Food name field and Calories field labeled with the selected
 table and becomes available in the food dropdown or cancel to stop making a new food.
 <img width="2542" height="1271" alt="image" src="https://github.com/user-attachments/assets/ee59a7b3-7ffb-497e-bbaa-b0bccebe66d0" />
 
+#### Delete a Recipe
+
+You can delete any recipe you own. The trash icon (**🗑**) only appears on
+recipe cards you are allowed to delete.
+
+(1) On the **Recipes** page, find the recipe you want to delete.
+
+(2) Click the **🗑** icon in the top-right of the recipe card.
+
+> ![Recipe card with the trash icon highlighted in the top-right](docs/images/delete-recipe.png)
+>
+> *Figure 15 — Trash icon on a recipe card.*
+
+(3) A confirmation dialog appears asking *"Are you sure you want to delete
+this recipe?"* Click **OK** to confirm or **Cancel** to back out.
+
+(4) After confirmation, the recipe disappears from the grid.
+
+#### Report a Recipe
+
+If you see a public recipe that violates community standards, you can report
+it for an admin to review.
+
+(1) On a public recipe card (badge shows **Global**), click the **🚩** icon
+in the top-right. The flag icon does not appear on personal recipes.
+
+> ![Public recipe card with the flag icon highlighted in the top-right](docs/images/report-recipe.png)
+>
+> *Figure 16 — Flag icon on a public recipe card.*
+
+(2) A confirmation dialog appears asking *"Are you sure you want to report
+this recipe?"* Click **OK** to continue.
+
+(3) When prompted, enter a short **name** for the report and click **OK**.
+
+(4) When prompted, enter a **description** explaining why you are reporting
+the recipe and click **OK**.
+
+(5) An alert confirms the report was filed: *"Recipe reported successfully."*
+An admin will review it from the Admin Dashboard.
+
+If you cancel either prompt, the report is not submitted.
+
 ### Workouts
 
 The Workouts page (URL: `/workouts`) works the same way as Recipes.
@@ -400,17 +452,182 @@ to mark the workout as eligible for publishing.
 
 (4) Click **Save Workout**. Click **Cancel** to close without saving.
 
+#### Delete a Workout
+
+You can delete any workout you own. The trash icon (**🗑**) only appears on
+workout cards you are allowed to delete.
+
+(1) On the **Workouts** page, find the workout you want to delete.
+
+(2) Click the **🗑** icon in the top-right of the workout card.
+
+> ![Workout card with the trash icon highlighted in the top-right](docs/images/delete-workout.png)
+>
+> *Figure 17 — Trash icon on a workout card.*
+
+(3) A confirmation dialog appears asking *"Are you sure you want to delete
+this workout?"* Click **OK** to confirm or **Cancel** to back out.
+
+(4) After confirmation, the workout disappears from the grid.
+
+#### Report a Workout
+
+If you see a public workout that violates community standards, you can
+report it for an admin to review.
+
+(1) On a public workout card (badge shows **Public**), click the **🚩** icon
+in the top-right. The flag icon does not appear on private workouts.
+
+> ![Public workout card with the flag icon highlighted in the top-right](docs/images/report-workout.png)
+>
+> *Figure 18 — Flag icon on a public workout card.*
+
+(2) A confirmation dialog appears asking *"Are you sure you want to report
+this workout?"* Click **OK** to continue.
+
+(3) When prompted, enter a short **name** for the report and click **OK**.
+
+(4) When prompted, enter a **description** explaining why you are reporting
+the workout and click **OK**.
+
+(5) An alert confirms the report was filed: *"Workout reported successfully."*
+An admin will review it from the Admin Dashboard.
+
+If you cancel either prompt, the report is not submitted.
+
+### Nutritionist Dashboard
+
+The Nutritionist Dashboard (URL: `/chef`) is shown only to users with the
+**Chef** account type and to Admins. A **Chef** link appears in the top
+navigation bar when you are signed in with one of these roles.
+
+> ![Chef Dashboard with a list of recipes pending review, each with Approve & Publish and Reject buttons](docs/images/chef-dashboard.png)
+>
+> *Figure 11 — Chef Dashboard. Each card shows a recipe submitted for
+> publication.*
+
+The page lists every recipe a user has flagged as **publishable** during
+recipe creation (see [Create a Recipe](#create-a-recipe), step 4). The header
+shows a counter — for example, *"3 recipe(s) awaiting review."* Each card
+displays the recipe name, description, instructions, ingredient list, and
+owner.
+
+To review a recipe:
+
+(1) Read the recipe details on the card.
+
+(2) Click **Approve & Publish** to publish the recipe to all users, or
+**Reject** to remove it from the review list.
+
+(3) A confirmation dialog appears. Click **OK** to confirm or **Cancel** to
+back out.
+
+(4) On success, the card disappears from the list. On failure, an alert
+message describes the error.
+
+When the queue is empty, the page shows *"No recipes to review — All caught
+up!"*
+
+### Gym Instructor Dashboard
+
+The Gym Instructor Dashboard (URL: `/fit`) is shown only to users with the
+**Trainer** account type and to Admins. A **Fitness** link appears in the
+top navigation bar when you are signed in with one of these roles.
+
+> ![Fitness Dashboard with a list of workouts pending review, each with Approve & Publish and Reject buttons](docs/images/fit-dashboard.png)
+>
+> *Figure 12 — Fitness Dashboard.*
+
+The page lists every workout a user has flagged as **publishable** during
+workout creation (see [Create a Workout](#create-a-workout), step 3). The
+header shows a counter — for example, *"2 workout(s) awaiting review."*
+Each card displays the workout name, instructions, and owner.
+
+To review a workout:
+
+(1) Read the workout details on the card.
+
+(2) Click **Approve & Publish** to publish the workout to all users, or
+**Reject** to remove it from the review list.
+
+(3) A confirmation dialog appears. Click **OK** to confirm or **Cancel** to
+back out.
+
+(4) On success, the card disappears from the list. On failure, an alert
+message describes the error.
+
+When the queue is empty, the page shows *"No workouts to review — All caught
+up!"*
+
+### Admin Dashboard
+
+The Admin Dashboard (URL: `/admin`) is shown only to users with the **Admin**
+account type. An **Admin** link appears in the top navigation bar. Admins
+also see the **Chef** and **Fitness** links and can use those dashboards.
+
+The page has two tabs at the top: **User Management** and **Reports**. The
+Reports tab label includes the current count — for example, *"Reports (5)."*
+
+#### Manage Users
+
+(1) Click the **User Management** tab.
+
+> ![Admin Dashboard User Management tab showing a search bar and a grid of user cards with Change Type dropdowns and Delete User buttons](docs/images/admin-users.png)
+>
+> *Figure 13 — User Management tab.*
+
+(2) Use the **search box** to filter users by ID, username, or email.
+
+(3) Each user card displays the username, role badge, user ID, and email
+address.
+
+(4) To change a user's role, choose a new value from the **Change Type**
+dropdown (Standard, Chef, or Trainer). A confirmation dialog appears before
+the change is saved.
+
+(5) To remove a user, click **Delete User**. A confirmation dialog appears.
+**This action cannot be undone.**
+
+Admin accounts have no actions on their cards — Admins cannot be demoted or
+deleted from this dashboard.
+
+#### Review Reports
+
+(1) Click the **Reports** tab.
+
+> ![Admin Dashboard Reports tab showing report cards with type badges and Delete Report, Delete Recipe, and Delete Workout buttons](docs/images/admin-reports.png)
+>
+> *Figure 14 — Reports tab.*
+
+(2) Each report card shows:
+  - The report title and the type of content reported (Recipe, Workout, or
+    Food).
+  - The report description.
+  - The username of the reporter and the timestamp of the report.
+  - Details of the reported item, including its name and owner.
+
+(3) To dismiss a report without removing the reported content, click
+**Delete Report**.
+
+(4) To remove the reported content itself, click **Delete Recipe** or
+**Delete Workout**. The matching button is shown automatically based on the
+report type.
+
+(5) A confirmation dialog appears for every action.
+
+When there are no reports, the page shows *"No reports found."*
+
 ### Account Roles
 
-NutriFlow has four account roles. Your role determines which features you can
-access.
+NutriFlow has four account roles. Your role determines which features and
+navigation links are available to you.
 
-| Role                | Capabilities                                                                       |
-|---------------------|------------------------------------------------------------------------------------|
-| Base User           | Create personal recipes and workouts. Browse public content. Report content.       |
-| Chef                | Everything a Base User can do, plus mark recipes as publishable.                   |
-| Fitness Instructor  | Everything a Base User can do, plus mark workouts as publishable.                  |
-| Admin               | All capabilities, plus manage users, delete any content, and review all reports.   |
+| Role                       | In-app label | Capabilities                                                                                                                      |
+|----------------------------|--------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| Standard User              | Standard     | Create personal recipes and workouts. Browse public content. Report content.                                                      |
+| Nutritionist               | Chef         | Everything a Standard User can do, plus mark recipes as publishable and approve or reject recipes from the Nutritionist Dashboard. |
+| Gym Instructor             | Trainer      | Everything a Standard User can do, plus mark workouts as publishable and approve or reject workouts from the Gym Instructor Dashboard. |
+| Admin                      | Admin        | All capabilities above, plus access to the Admin Dashboard for user management and report review.                                 |
 
-New accounts are created as Base Users. An Admin can promote you to Chef or
-Fitness Instructor.
+New accounts are created as Standard users. Only an Admin can change a user's
+role from the Admin Dashboard.
