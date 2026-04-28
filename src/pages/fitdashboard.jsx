@@ -71,9 +71,7 @@ export default function FitDashboard() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/admin/delete-workout?huid=${localStorage.getItem(
-          "token"
-        )}&uname=${localStorage.getItem("username")}&wid=${wid}`
+        `${API_BASE}/api/fit/set-workout-publicity?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}&wid=${wid}&isPublic=false`
       );
       const json = await res.json();
 

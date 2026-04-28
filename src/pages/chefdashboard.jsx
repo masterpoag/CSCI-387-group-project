@@ -34,6 +34,7 @@ export default function ChefDashboard() {
   }, []);
 
   async function handleApprove(rid) {
+    console.log("Approving recipe with rid:", rid);
     const confirmed = window.confirm(
       "Are you sure you want to approve and publish this recipe?"
     );
@@ -41,14 +42,10 @@ export default function ChefDashboard() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/chef/set-recipe-publicity?huid=${localStorage.getItem(
-          "token"
-        )}&uname=${localStorage.getItem(
-          "username"
-        )}&rid=${rid}&isPublic=true`
+        `${API_BASE}/api/chef/set-recipe-publicity?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}&rid=${rid}&isPublic=true`
       );
       const json = await res.json();
-
+      console.log(json);
       if (json?.Result === "Success") {
         loadRecipes();
       } else {
@@ -69,9 +66,7 @@ export default function ChefDashboard() {
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/admin/delete-recipe?huid=${localStorage.getItem(
-          "token"
-        )}&uname=${localStorage.getItem("username")}&rid=${rid}`
+        `${API_BASE}/api/chef/set-recipe-publicity?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}&rid=${rid}&isPublic=false`
       );
       const json = await res.json();
 

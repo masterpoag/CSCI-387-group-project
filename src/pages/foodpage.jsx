@@ -1,6 +1,10 @@
+
 import { useEffect, useMemo, useState } from "react";
 import RecipeCard from "./cards/RecipeCard";
-import NewFoodModal from "../components/NewFoodModal";
+
+// TODO Add: allow admins to delete public recipes.
+// TODO STRETCH GOALS:
+// - Allow users to delete their recipes
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
@@ -17,18 +21,22 @@ export default function RecipePage() {
   const [foodsError, setFoodsError] = useState("");
 
   const [selectedUnit, setSelectedUnit] = useState(null);
-  const [createRecipeModalOpen, setCreateRecipeModalOpen] = useState(false);
+  const [selectedFood, setSelectedFood] = useState("");
+  const [foodSearch, setFoodSearch] = useState("");
+  const [showFoodDropdown, setShowFoodDropdown] = useState(false);
+  const [newFoodModalOpen, setNewFoodModalOpen] = useState(false);
+  const [newFood, setNewFood] = useState({
+    name: "",
+    cal: "",
+  });
 
+  const [createRecipeModalOpen, setCreateRecipeModalOpen] = useState(false);
   const [formError, setFormError] = useState("");
   const [accountType, setAccountType] = useState(null);
 
   const [recipeFoods, setRecipeFoods] = useState([]);
   const [availableFoods, setAvailableFoods] = useState([]);
   const [foodsLoading, setFoodsLoading] = useState(false);
-
-  const [newFoodModalOpen, setNewFoodModalOpen] = useState(false);
-
-
 
   const [newRecipe, setNewRecipe] = useState({
     rname: "",
@@ -40,12 +48,16 @@ export default function RecipePage() {
   // ================= LOAD RECIPES =================
   async function loadRecipes() {
     try {
-      const headers = { "Content-Type": "application/json" };
+      const headers = {
+        "Content-Type": "application/json",
+      };
 
       const [publicRes, userRes] = await Promise.all([
         fetch(`${API_BASE}/api/get-public-recipe`, { headers }),
         fetch(
-          `${API_BASE}/api/get-user-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
+          `${API_BASE}/api/get-user-recipe?huid=${localStorage.getItem(
+            "token"
+          )}&uname=${localStorage.getItem("username")}`,
           { headers }
         ),
       ]);
@@ -56,7 +68,8 @@ export default function RecipePage() {
       const publicRecipes = publicJson?.Data ?? [];
       const userRecipes = userJson?.Data ?? [];
 
-      setRecipes([...userRecipes, ...publicRecipes]);
+      const allRecipes = [...userRecipes, ...publicRecipes];
+      setRecipes(allRecipes);
     } catch {
       setFoodsError("Network error");
     }
@@ -69,82 +82,102 @@ export default function RecipePage() {
 
   // ================= FILTER =================
   const filteredRecipes = useMemo(() => {
-  const term = searchTerm.toLowerCase();
+    const term = searchTerm.toLowerCase();
 
-  return recipes.filter((r) =>
-      (r.nr?.rname ?? "").toLowerCase().includes(term) ||
-      (r.nr?.desc ?? "").toLowerCase().includes(term) ||
-      (r.nr?.instruct ?? "").toLowerCase().includes(term)
+    return recipes.filter(
+      (r) =>
+        r.name?.toLowerCase().includes(term) ||
+        r.desc?.toLowerCase().includes(term) ||
+        r.instruct?.toLowerCase().includes(term)
     );
   }, [recipes, searchTerm]);
 
-  // ================= ACCOUNT TYPE =================
-  async function loadAccountType() {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  // ================= DELETE =================
+  async function handleDeleteRecipe(rid) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this recipe?"
+    );
+
+    if (!confirmed) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/get-auth-level?huid=${token}`);
+      const res = await fetch(
+        `${API_BASE}/api/delete-recipe?huid=${localStorage.getItem(
+          "token"
+        )}&uname=${localStorage.getItem("username")}&rid=${rid}`,
+        { method: "GET" }
+      );
+
       const json = await res.json();
 
       if (json?.Result === "Success") {
-        setAccountType(json.Data?.[0]?.account_type ?? null);
+        loadRecipes();
+      } else {
+        console.error(json?.Message);
       }
-    } catch {}
+    } catch {
+      console.error("Network error");
+    }
   }
 
+  // ================= PERMISSIONS =================
   const isAdmin = accountType === 0 || accountType === 3;
 
-  // ================= DELETE =================
-  async function handleDeleteRecipe(rid) {
-    const confirmed = window.confirm("Are you sure you want to delete this recipe?");
-    if (!confirmed) return;
+  const canDeleteRecipe = (recipe) =>
+    !recipe.isPublic || (isAdmin && recipe.isPublic);
 
-    const id = rid ?? null;
-    if (!id) return console.error("Missing recipe id");
-
-    await fetch(
-      `${API_BASE}/api/delete-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}&rid=${id}`,
-      { method: "GET" }
-    );
-
-    loadRecipes();
-  }
+  const canReportRecipe = (recipe) => recipe.isPublic;
 
   // ================= REPORT =================
   async function handleReportRecipe(rid) {
+    const confirmed = window.confirm(
+      "Are you sure you want to report this recipe?"
+    );
+
+    if (!confirmed) return;
+
     const token = localStorage.getItem("token");
     const uname = localStorage.getItem("username");
 
-    if (!token || !uname) return alert("Login required");
+    if (!token || !uname) {
+      alert("Please log in to report content.");
+      return;
+    }
 
-    const id = rid ?? null;
-    if (!id) return alert("Missing recipe id");
+    const reportName = window.prompt("Enter a name for this report:");
+    if (reportName === null || !reportName.trim()) return;
 
-    const rname = window.prompt("Report title:");
-    const desc = window.prompt("Description:");
+    const desc = window.prompt("Please enter a description for the report:");
+    if (desc === null) return;
 
-    if (!rname || !desc) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/report-content?huid=${token}&uname=${uname}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rname: reportName.trim(),
+            desc,
+            rep_type: "rcp",
+            obj_id: rid,
+          }),
+        }
+      );
 
-    await fetch(
-      `${API_BASE}/api/report-content?huid=${token}&uname=${uname}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rname,
-          desc,
-          rep_type: "rcp",
-          obj_id: id,
-        }),
+      const json = await res.json();
+
+      if (json?.Result === "Success") {
+        alert("Recipe reported successfully.");
+      } else {
+        alert("Failed to report recipe.");
       }
-    );
+    } catch {
+      alert("Network error while reporting recipe.");
+    }
   }
 
-  const canDeleteRecipe = (recipe) => !recipe.nr?.isPublic || isAdmin;
-  const canReportRecipe = (recipe) => recipe.nr?.isPublic;
-
-  // ================= FOOD =================
+  // ================= FOODS =================
   async function loadFoods() {
     setFoodsLoading(true);
 
@@ -152,16 +185,94 @@ export default function RecipePage() {
       const res = await fetch(`${API_BASE}/api/get-foods`);
       const json = await res.json();
 
-      setAvailableFoods(json?.Data ?? []);
+      if (json?.Result === "Success") {
+        setAvailableFoods(json.Data ?? []);
+      } else {
+        console.error("Failed to load foods:", json?.Message);
+      }
+    } catch {
+      console.error("Network error loading foods");
     } finally {
       setFoodsLoading(false);
     }
   }
 
+  const filteredFoods = useMemo(() => {
+    return availableFoods.filter((food) =>
+      food.name?.toLowerCase().includes(foodSearch.toLowerCase())
+    );
+  }, [availableFoods, foodSearch]);
+
+  function handleAddExistingFood(food) {
+    if (selectedUnit === null) {
+      setFormError("Please select a unit first");
+      return;
+    }
+
+    setRecipeFoods((prev) => [
+      ...prev,
+      {
+        fname: food.name,
+        qty: 1,
+        isNew: false,
+        cal: Number(food.cal),
+        
+        base_measurement: selectedUnit,
+      },
+    ]);
+
+    setSelectedFood(food.name);
+    setFoodSearch("");
+    setShowFoodDropdown(false);
+  }
+
+  function handleSaveNewFood() {
+    if (!newFood.name.trim()) {
+      setFormError("Food name is required");
+      return;
+    }
+
+    if (!newFood.cal || Number(newFood.cal) < 0) {
+      setFormError("Calories must be valid");
+      return;
+    }
+
+    if (selectedUnit === null) {
+      setFormError("Please select a unit first");
+      return;
+    }
+
+    const createdFood = {
+      fname: newFood.name.trim(),
+      qty: 1,
+      isNew: true,
+      cal: Number(newFood.cal),
+      
+      base_measurement: selectedUnit,
+    };
+
+    setRecipeFoods((prev) => [...prev, createdFood]);
+
+    setNewFood({
+      name: "",
+      cal: "",
+    });
+
+    setNewFoodModalOpen(false);
+  }
+
   function updateQty(index, value) {
+    const val = Number(value);
+
     setRecipeFoods((prev) =>
       prev.map((f, i) =>
-        i === index ? { ...f, qty: Number(value) } : f
+        i === index
+          ? {
+              ...f,
+              qty: val,
+              
+            }
+          : f
       )
     );
   }
@@ -182,23 +293,33 @@ export default function RecipePage() {
     };
   }
 
-  const selectedUnitLabel =
-    IMPERIAL_BASE_UNITS.find((u) => u.value === selectedUnit)?.label ??
-    "selected unit";
+  // ================= ACCOUNT =================
+  async function loadAccountType() {
+    const token = localStorage.getItem("token");
 
-  function handleNewFoodSave({ name, cal }) {
-    setExtraFoods((prev) => [...prev, { name, cal }]);
+    if (!token) {
+      setAccountType(null);
+      return;
+    }
 
-    setRecipeFoods((prev) => [
-      ...prev,
-      {
-        fname: name,
-        qty: 1,
-        isNew: true,
-        cal,
-        base_measurement: selectedUnit,
-      },
-    ]);
+    try {
+      const res = await fetch(
+        `${API_BASE}/api/get-auth-level?huid=${token}`
+      );
+
+      const json = await res.json();
+
+      if (
+        json?.Result === "Success" &&
+        json.Data?.[0]?.account_type !== undefined
+      ) {
+        setAccountType(json.Data[0].account_type);
+      } else {
+        setAccountType(null);
+      }
+    } catch {
+      setAccountType(null);
+    }
   }
 
   // ================= CREATE RECIPE =================
@@ -211,6 +332,7 @@ export default function RecipePage() {
       if (confirmed) {
         window.location.href = "/~group3sp26/login";
       }
+
       return;
     }
 
@@ -218,7 +340,7 @@ export default function RecipePage() {
     setCreateRecipeModalOpen(true);
   }
 
-    async function handleCreateRecipe() {
+  async function handleCreateRecipe() {
     setFormError("");
 
     if (!newRecipe.rname.trim()) {
@@ -235,7 +357,9 @@ export default function RecipePage() {
       const payload = buildCreateRecipePayload();
 
       const res = await fetch(
-        `${API_BASE}/api/create-recipe?huid=${localStorage.getItem("token")}&uname=${localStorage.getItem("username")}`,
+        `${API_BASE}/api/create-recipe?huid=${localStorage.getItem(
+          "token"
+        )}&uname=${localStorage.getItem("username")}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -248,6 +372,8 @@ export default function RecipePage() {
       if (json?.Result === "Success") {
         setCreateRecipeModalOpen(false);
         setRecipeFoods([]);
+        setSelectedUnit(null);
+        setSelectedFood("");
 
         setNewRecipe({
           rname: "",
@@ -330,7 +456,9 @@ export default function RecipePage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="createRecipeModalHeader">
-              <h2 className="createRecipeModalTitle">Create New Recipe</h2>
+              <h2 className="createRecipeModalTitle">
+                Create New Recipe
+              </h2>
 
               <button
                 className="createRecipeModalClose"
@@ -341,112 +469,204 @@ export default function RecipePage() {
             </div>
 
             <div className="createRecipeForm">
-              {/* Recipe Info Section */}
               <section className="createRecipeSection">
-                <h3 className="createRecipeSectionTitle">Recipe Details</h3>
-                
+                <h3 className="createRecipeSectionTitle">
+                  Recipe Details
+                </h3>
+
                 <div className="createRecipeField">
-                  <label className="createRecipeLabel">Recipe Name *</label>
+                  <label className="createRecipeLabel">
+                    Recipe Name *
+                  </label>
+
                   <input
                     className="foodSearchInput"
                     placeholder="e.g., Chicken Stir Fry"
                     value={newRecipe.rname}
                     onChange={(e) =>
-                      setNewRecipe({ ...newRecipe, rname: e.target.value })
+                      setNewRecipe({
+                        ...newRecipe,
+                        rname: e.target.value,
+                      })
                     }
                   />
                 </div>
 
                 <div className="createRecipeField">
-                  <label className="createRecipeLabel">Description</label>
+                  <label className="createRecipeLabel">
+                    Description
+                  </label>
+
                   <textarea
                     className="foodSearchInput createRecipeTextarea"
                     placeholder="A brief description of your recipe..."
                     value={newRecipe.desc}
                     onChange={(e) =>
-                      setNewRecipe({ ...newRecipe, desc: e.target.value })
+                      setNewRecipe({
+                        ...newRecipe,
+                        desc: e.target.value,
+                      })
                     }
                   />
                 </div>
 
                 <div className="createRecipeField">
-                  <label className="createRecipeLabel">Instructions</label>
+                  <label className="createRecipeLabel">
+                    Instructions
+                  </label>
+
                   <textarea
                     className="foodSearchInput createRecipeTextarea createRecipeInstructions"
                     placeholder="Step by step cooking instructions..."
                     value={newRecipe.instruct}
                     onChange={(e) =>
-                      setNewRecipe({ ...newRecipe, instruct: e.target.value })
+                      setNewRecipe({
+                        ...newRecipe,
+                        instruct: e.target.value,
+                      })
                     }
                   />
                 </div>
 
-                {(
-                  <div className="createRecipeToggle">
-                    <label className="createRecipeToggleLabel">
-                      <input
-                        type="checkbox"
-                        checked={newRecipe.isPublishable}
-                        onChange={(e) =>
-                          setNewRecipe({ ...newRecipe, isPublishable: e.target.checked })
-                        }
-                        className="createRecipeCheckbox"
-                      />
-                      <span className="createRecipeToggleSwitch"></span>
-                      <span className="createRecipeToggleText">
-                        {newRecipe.isPublishable ? "Submit for Publishing" : "Keep Private"}
-                      </span>
-                    </label>
-                  </div>
-                )}
+                <div className="createRecipeToggle">
+                  <label className="createRecipeToggleLabel">
+                    <input
+                      type="checkbox"
+                      checked={newRecipe.isPublishable}
+                      onChange={(e) =>
+                        setNewRecipe({
+                          ...newRecipe,
+                          isPublishable: e.target.checked,
+                        })
+                      }
+                      className="createRecipeCheckbox"
+                    />
+
+                    <span className="createRecipeToggleSwitch"></span>
+
+                    <span className="createRecipeToggleText">
+                      {newRecipe.isPublishable
+                        ? "Submit for Publishing"
+                        : "Keep Private"}
+                    </span>
+                  </label>
+                </div>
               </section>
 
-              {/* Foods Section */}
               <section className="createRecipeSection">
                 <h3 className="createRecipeSectionTitle">Ingredients</h3>
 
                 <div className="createRecipeFoodSelectors">
                   <div className="createRecipeSelector">
                     <label className="createRecipeLabel">Unit</label>
+
                     <select
                       className="adminUserActionSelect"
                       value={selectedUnit ?? ""}
-                      onChange={(e) => setSelectedUnit(Number(e.target.value))}
+                      onChange={(e) =>
+                        setSelectedUnit(Number(e.target.value))
+                      }
                     >
                       <option value="">Select unit...</option>
+
                       {IMPERIAL_BASE_UNITS.map((u) => (
-                        <option key={u.value} value={u.value}>{u.label}</option>
+                        <option key={u.value} value={u.value}>
+                          {u.label}
+                        </option>
                       ))}
                     </select>
                   </div>
+
                   <div className="createRecipeSelector">
                     <label className="createRecipeLabel">Food</label>
-                    <select
-                      className="adminUserActionSelect"
-                      value={selectedFood ?? ""}
-                      onChange={(e) => {
-                        const food = availableFoods.find(f => f.name === e.target.value);
-                        if (food && selectedUnit !== null) {
-                          setRecipeFoods(prev => [...prev, {
-                            fname: food.name,
-                            qty: 1,
-                            isNew: false,
-                            cal: food.cal,
-                            base_measure: selectedUnit,
-                          }]);
-                        }
-                      }}
-                      disabled={selectedUnit === null || foodsLoading}
+
+                    <div
+                      className="createRecipeSearchWrapper"
+                      style={{ position: "relative" }}
                     >
-                      <option value="">{foodsLoading ? "Loading..." : "Select food..."}</option>
-                      {availableFoods.map((f) => (
-                        <option key={f.fid} value={f.name}>{f.name}</option>
-                      ))}
-                    </select>
+                      <input
+                        type="text"
+                        className="foodSearchInput"
+                        placeholder="Search foods..."
+                        value={foodSearch}
+                        onFocus={() => setShowFoodDropdown(true)}
+                        onBlur={() => {
+                          setTimeout(() => {
+                            setShowFoodDropdown(false);
+                          }, 150);
+                        }}
+                        onChange={(e) => {
+                          setFoodSearch(e.target.value);
+                          setShowFoodDropdown(true);
+                        }}
+                        disabled={selectedUnit === null || foodsLoading}
+                      />
+
+                      {showFoodDropdown &&
+                        (filteredFoods.length > 0 ||
+                          foodSearch.trim().length > 0) && (
+                        <div
+                          className="createRecipeFoodDropdown"
+                          style={{
+                            position: "absolute",
+                            top: "100%",
+                            left: 0,
+                            right: 0,
+                            background: "#1f2940",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            borderRadius: "12px",
+                            marginTop: "6px",
+                            maxHeight: "220px",
+                            overflowY: "auto",
+                            zIndex: 1000,
+                          }}
+                        >
+                          {filteredFoods.map((f) => (
+                            <button
+                              key={f.fid}
+                              type="button"
+                              className="createRecipeFoodOption"
+                              style={{
+                                width: "100%",
+                                textAlign: "left",
+                                padding: "12px",
+                                background: "transparent",
+                                border: "none",
+                                color: "white",
+                                cursor: "pointer",
+                              }}
+                              onClick={() => handleAddExistingFood(f)}
+                            >
+                              {f.name}
+                            </button>
+                          ))}
+
+                          <button
+                            type="button"
+                            className="createRecipeFoodOption"
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              padding: "12px",
+                              background: "transparent",
+                              border: "none",
+                              color: "#6dd5ff",
+                              cursor: "pointer",
+                              borderTop: "1px solid rgba(255,255,255,0.08)",
+                            }}
+                            onClick={() => {
+                              setShowFoodDropdown(false);
+                              setNewFoodModalOpen(true);
+                            }}
+                          >
+                            + Add New Food
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                {/* Ingredient Table */}
                 {recipeFoods.length > 0 && (
                   <div className="createRecipeIngredientsTable">
                     <div className="createRecipeTableHeader">
@@ -456,28 +676,38 @@ export default function RecipePage() {
                       <span className="tableColUnit">Unit</span>
                       <span className="tableColAction"></span>
                     </div>
+
                     {recipeFoods.map((food, index) => (
                       <div key={index} className="createRecipeTableRow">
                         <span className="tableColName">{food.fname}</span>
+
                         <input
                           className="tableColQty createRecipeQtyInput"
                           type="number"
                           value={food.qty}
                           min="0"
                           step="0.1"
-                          onChange={(e) => updateQty(index, e.target.value)}
+                          onChange={(e) =>
+                            updateQty(index, e.target.value)
+                          }
                         />
+
                         <span className="tableColCal">
-                          {food.cal} cal
+                          {Number(food.cal) * Number(food.qty)} cal
                         </span>
+
                         <span className="tableColUnit">
-                          {IMPERIAL_BASE_UNITS.find(u => u.value === food.base_measure)?.label}
+                          {
+                            IMPERIAL_BASE_UNITS.find(
+                              (u) => u.value === food.base_measurement
+                            )?.label
+                          }
                         </span>
+
                         <button
                           type="button"
                           className="tableColAction createRecipeRemoveBtn"
                           onClick={() => handleRemoveFood(index)}
-                          aria-label={`Remove ${food.fname}`}
                         >
                           ×
                         </button>
@@ -488,12 +718,12 @@ export default function RecipePage() {
 
                 {recipeFoods.length === 0 && (
                   <div className="createRecipeEmptyIngredients">
-                    No ingredients added yet. Select a unit and food above to add ingredients.
+                    No ingredients added yet. Select a unit and food above to
+                    add ingredients.
                   </div>
                 )}
               </section>
 
-              {/* Error Display */}
               {formError && (
                 <div className="createRecipeError">
                   <span className="createRecipeErrorIcon">!</span>
@@ -501,7 +731,6 @@ export default function RecipePage() {
                 </div>
               )}
 
-              {/* Actions */}
               <div className="createRecipeActions">
                 <button
                   type="button"
@@ -510,6 +739,7 @@ export default function RecipePage() {
                 >
                   Cancel
                 </button>
+
                 <button
                   type="button"
                   className="foodCreateRecipeBtn createRecipeSubmitBtn"
@@ -523,12 +753,90 @@ export default function RecipePage() {
         </div>
       )}
 
-      <NewFoodModal
-        open={newFoodModalOpen}
-        unitLabel={selectedUnitLabel}
-        onClose={() => setNewFoodModalOpen(false)}
-        onSave={handleNewFoodSave}
-      />
+      {foodsError && <div>{foodsError}</div>}
+
+      {newFoodModalOpen && (
+        <div
+          className="createRecipeModalBackdrop"
+          onClick={() => setNewFoodModalOpen(false)}
+        >
+          <div
+            className="createRecipeModalDialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="createRecipeModalHeader">
+              <h2 className="createRecipeModalTitle">
+                Add New Food
+              </h2>
+
+              <button
+                className="createRecipeModalClose"
+                onClick={() => setNewFoodModalOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="createRecipeForm">
+              <div className="createRecipeField">
+                <label className="createRecipeLabel">
+                  Food Name
+                </label>
+
+                <input
+                  className="foodSearchInput"
+                  placeholder="Enter food name"
+                  value={newFood.name}
+                  onChange={(e) =>
+                    setNewFood({
+                      ...newFood,
+                      name: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="createRecipeField">
+                <label className="createRecipeLabel">
+                  Calories
+                </label>
+
+                <input
+                  type="number"
+                  className="foodSearchInput"
+                  placeholder="Enter calories"
+                  value={newFood.cal}
+                  onChange={(e) =>
+                    setNewFood({
+                      ...newFood,
+                      cal: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="createRecipeActions">
+                <button
+                  type="button"
+                  className="createRecipeCancelBtn"
+                  onClick={() => setNewFoodModalOpen(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  className="foodCreateRecipeBtn createRecipeSubmitBtn"
+                  onClick={handleSaveNewFood}
+                >
+                  Add Food
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
