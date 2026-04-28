@@ -181,7 +181,7 @@ The next sections are for people using the live NutriFlow application. Open
 #### Create an Account
 
 (1) Click **Login** in the top navigation bar.
-<img width="1920" height="1080" alt="ss_2026-04-28_13-01-19" src="https://github.com/user-attachments/assets/fb8270c9-42ae-42c9-ad69-bdac2422ab51" />
+<img width="1920" height="1080" alt="ss_2026-04-28_13-01-19" src="https://i.imgur.com/ZqSU2et.png" />
 
 
 (2) Click **Create one** at the bottom of the login card.
