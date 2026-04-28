@@ -256,7 +256,7 @@ export default function RecipePage() {
         rname: newRecipe.rname,
         desc: newRecipe.desc,
         instruct: newRecipe.instruct,
-        isPublic: newRecipe.isPublic,
+        isPublishable: newRecipe.isPublishable,
       },
       foods: recipeFoods,
     };
