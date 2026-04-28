@@ -5,6 +5,8 @@ import LoginPage from "./pages/loginpage.jsx"
 import FoodPage from "./pages/foodpage.jsx";
 import WorkoutPage from "./pages/workoutpage.jsx";
 import AdminPage from "./pages/adminpage.jsx";
+import ChefDashboard from "./pages/chefdashboard.jsx";
+import FitDashboard from "./pages/fitdashboard.jsx";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
@@ -106,6 +108,22 @@ function App() {
                 >
                   Workouts
                 </NavLink>
+                {(accountType === 0 || accountType === 2) && (
+                  <NavLink
+                    to="/chef"
+                    className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                  >
+                    Chef
+                  </NavLink>
+                )}
+                {(accountType === 0 || accountType === 3) && (
+                  <NavLink
+                    to="/fit"
+                    className={({ isActive }) => `topNavLink${isActive ? " isActive" : ""}`}
+                  >
+                    Fitness
+                  </NavLink>
+                )}
                 {accountType === 0 && (
                   <NavLink
                     to="/admin"
@@ -144,6 +162,8 @@ function App() {
           <Route path="/food" element={<FoodPage />} />
           <Route path="/workouts" element={<WorkoutPage />} />
           <Route path="/admin" element={accountType === 0 ? <AdminPage /> : <HomePage />} />
+          <Route path="/chef" element={accountType === 2 || accountType === 0 ? <ChefDashboard /> : <HomePage />} />
+          <Route path="/fit" element={accountType === 3 || accountType === 0 ? <FitDashboard /> : <HomePage />} />
         </Routes>
       </>
     );

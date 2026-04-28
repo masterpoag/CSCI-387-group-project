@@ -8,13 +8,13 @@ const API_BASE =
 function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
+  const [isPublishable, setIsPublishable] = useState(false);
 
   useEffect(() => {
     if (open) {
       setName("");
       setInstructions("");
-      setIsPublic(false);
+      setIsPublishable(false);
     }
   }, [open]);
 
@@ -29,7 +29,7 @@ function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
     onSave({
       name: trimmed,
       instructions: instructions.trim(),
-      isPublic,
+      isPublishable,
     });
 
     onClose();
@@ -69,13 +69,13 @@ function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
               <label className="createRecipeToggleLabel">
                 <input
                   type="checkbox"
-                  checked={isPublic}
-                  onChange={(e) => setIsPublic(e.target.checked)}
+                  checked={isPublishable}
+                  onChange={(e) => setIsPublishable(e.target.checked)}
                   className="createRecipeCheckbox"
                 />
                 <span className="createRecipeToggleSwitch"></span>
                 <span className="createRecipeToggleText">
-                  {isPublic ? "Public Workout" : "Private Workout"}
+                  {isPublishable ? "Submit for Publishing" : "Keep Private"}
                 </span>
               </label>
             </div>

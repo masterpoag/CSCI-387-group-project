@@ -43,7 +43,7 @@ export default function RecipePage() {
     rname: "",
     desc: "",
     instruct: "",
-    isPublic: false,
+    isPublishable: false,
   });
 
   // ================= LOAD RECIPES =================
@@ -479,15 +479,15 @@ export default function RecipePage() {
                     <label className="createRecipeToggleLabel">
                       <input
                         type="checkbox"
-                        checked={newRecipe.isPublic}
+                        checked={newRecipe.isPublishable}
                         onChange={(e) =>
-                          setNewRecipe({ ...newRecipe, isPublic: e.target.checked })
+                          setNewRecipe({ ...newRecipe, isPublishable: e.target.checked })
                         }
                         className="createRecipeCheckbox"
                       />
                       <span className="createRecipeToggleSwitch"></span>
                       <span className="createRecipeToggleText">
-                        {newRecipe.isPublic ? "Public Recipe" : "Private Recipe"}
+                        {newRecipe.isPublishable ? "Submit for Publishing" : "Keep Private"}
                       </span>
                     </label>
                   </div>

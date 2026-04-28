@@ -2061,3 +2061,67 @@ button:focus-visible {
 .adminDeleteBtn:hover {
   background: #c82333;
 }
+
+.adminTabs {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.adminTab {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.adminTab:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.adminTab.active {
+  background: rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+}
+
+.adminApproveBtn {
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  border: none;
+  background: #28a745;
+  color: white;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.adminApproveBtn:hover {
+  background: #218838;
+}
+
+[data-theme="light"] .adminApproveBtn {
+  background: #28a745;
+  color: white;
+}
+
+[data-theme="light"] .adminApproveBtn:hover {
+  background: #218838;
+}
+
+[data-theme="light"] .adminTab {
+  background: #f5f5f5;
+  border-color: #ccc;
+  color: #333;
+}
+
+[data-theme="light"] .adminTab:hover {
+  background: #e0e0e0;
+}
+
+[data-theme="light"] .adminTab.active {
+  background: #d0d0d0;
+}
