@@ -1,3 +1,12 @@
+// AdminPage — admin-only dashboard.
+//
+// Two tabs:
+//   - User Management: search users, change their account type
+//     (Standard / Chef / Trainer), delete users.
+//   - Reports: review and resolve user-submitted reports about public
+//     recipes, workouts, or foods. Admin can dismiss the report (Delete
+//     Report) or remove the offending content directly.
+
 import { useEffect, useMemo, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
@@ -10,6 +19,7 @@ export default function AdminPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("users"); // "users" or "reports"
 
+  // Loads every user account so the admin can manage them.
   async function loadUsers() {
     setLoading(true);
     setError("");
@@ -40,6 +50,8 @@ export default function AdminPage() {
     loadReports();
   }, []);
 
+  // Loads every report ever filed. The user's IANA timezone is sent
+  // along so the backend can return localized timestamps.
   async function loadReports() {
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -60,6 +72,8 @@ export default function AdminPage() {
     }
   }
 
+  // Client-side filter for the User Management search box. Matches
+  // against UID, username, and email.
   const filteredUsers = useMemo(() => {
     const term = searchTerm.toLowerCase();
     if (!term) return users;
@@ -73,6 +87,8 @@ export default function AdminPage() {
     );
   }, [users, searchTerm]);
 
+  // Promote / demote a user. Levels: 1 = Standard, 2 = Chef, 3 = Trainer.
+  // Admin (0) is intentionally not assignable from the dashboard.
   async function handleChangeLevel(changedUid, newLevel) {
     const confirmed = window.confirm(
       `Are you sure you want to change this user's account type to ${newLevel}?`
@@ -99,6 +115,8 @@ export default function AdminPage() {
     }
   }
 
+  // Permanently remove a user account. The backend cascades through
+  // the user's owned recipes/workouts/reports.
   async function handleDeleteUser(uid) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this user? This action cannot be undone."
@@ -125,6 +143,7 @@ export default function AdminPage() {
     }
   }
 
+  // Dismiss a report without touching the reported content.
   async function handleDeleteReport(repid) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this report?"
@@ -150,6 +169,8 @@ export default function AdminPage() {
     }
   }
 
+  // Delete the recipe a report is about. Surfaced as a button on the
+  // report card itself so the admin doesn't have to navigate away.
   async function handleDeleteReportedRecipe(rid) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this recipe?"
@@ -175,6 +196,8 @@ export default function AdminPage() {
     }
   }
 
+  // Delete the workout a report is about. Same shortcut pattern as the
+  // recipe equivalent above.
   async function handleDeleteReportedWorkout(wid) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this workout?"

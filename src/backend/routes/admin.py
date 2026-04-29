@@ -1,3 +1,9 @@
+"""Admin-only routes (user management, content moderation).
+
+Every endpoint under /api/admin runs the request through `auth_admin`
+so a non-admin can never reach the underlying SQL.
+"""
+
 import mysql.connector
 import db
 from fastapi import APIRouter
@@ -9,6 +15,7 @@ router = APIRouter(prefix="/api/admin")
 
 @router.get("/delete-food")
 async def delete_food(huid: float, uname: str, fname: str):
+    """Remove a food entry from the shared library by name."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -38,6 +45,11 @@ async def delete_food(huid: float, uname: str, fname: str):
 
 @router.get("/change-user-level")
 async def change_user_level(huid: float, uname: str, changed_uid: int, level: int):
+    """Promote / demote a user's account_type.
+
+    Levels: 1=Standard, 2=Chef, 3=Trainer. Admin (0) is intentionally
+    not selectable here. Admins can also not change their own account.
+    """
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:
@@ -78,6 +90,11 @@ async def change_user_level(huid: float, uname: str, changed_uid: int, level: in
 
 @router.get("/delete-user")
 async def delete_user(huid: float, uname: str, deleted_uid: int):
+    """Permanently delete a user account.
+
+    The Admin cannot delete themselves. Foreign-key cascades take care
+    of the user's owned recipes/workouts/reports.
+    """
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:
@@ -108,6 +125,7 @@ async def delete_user(huid: float, uname: str, deleted_uid: int):
 
 @router.get("/get-all-user")
 async def get_all_user(huid: float, uname: str):
+    """Return every user account so the Admin Dashboard can list them."""
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:
@@ -140,6 +158,12 @@ async def get_all_user(huid: float, uname: str):
 
 @router.get("/get-all-reports")
 async def get_all_reports(huid: float, uname: str, tz: str):
+    """Return every user-filed report.
+
+    `tz` is an IANA timezone string sent from the browser so timestamps
+    can be returned in the admin's local time. Each report includes a
+    nested `obj` field describing the reported recipe/workout/food.
+    """
     res = Result()
 
     try:
@@ -206,6 +230,10 @@ async def get_all_reports(huid: float, uname: str, tz: str):
 
 @router.get("/delete-recipe")
 async def delete_recipe(huid: float, uname: str, rid: int):
+    """Admin-level recipe delete (no ownership check).
+
+    Used to remove offending content surfaced through the report queue.
+    """
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -258,6 +286,8 @@ async def delete_recipe(huid: float, uname: str, rid: int):
 
 @router.get("/delete-workout")
 async def delete_workout(huid: float, uname: str, wid: int):
+    """Admin-level workout delete (no ownership check). Same purpose
+    as /delete-recipe for the workout side of the moderation queue."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -297,6 +327,8 @@ async def delete_workout(huid: float, uname: str, wid: int):
 
 @router.get("/delete-report")
 async def admin_delete_report(huid: float, uname: str, repid: int):
+    """Dismiss any user's report. Used by admins from the Reports
+    tab to clear noise without touching the reported content."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):

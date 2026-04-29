@@ -1,9 +1,16 @@
+// HomePage — public landing page.
+//
+// Purely presentational: introduces NutriFlow, shows the three feature
+// highlight cards, and provides quick-link CTAs into the auth and content
+// pages. Visible to both authenticated and unauthenticated visitors.
+
 import React from "react";
 import { Link } from "react-router-dom";
 
 //TODO Add admin page to allow for setting account types for users.
 
 export default function HomePage({/* Add Vars here for passthrough*/}) {
+  // Static content for the feature card grid.
   const featureItems = [
     {
       title: "Smart Planning",

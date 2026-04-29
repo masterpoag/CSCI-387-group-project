@@ -1,5 +1,16 @@
+// WorkoutCard — single workout tile rendered in the Workouts grid and
+// the Gym Instructor Dashboard's review queue.
+
 import React from "react";
 
+/**
+ * Props:
+ *   workout    — workout object (wid, name, instructions, isPublic, ...)
+ *   onDelete   — callback invoked with wid when the trash icon is clicked
+ *   canDelete  — whether to show the trash icon
+ *   onReport   — callback invoked with wid when the flag icon is clicked
+ *   canReport  — whether to show the flag icon
+ */
 export default function WorkoutCard({
   workout,
   onDelete,

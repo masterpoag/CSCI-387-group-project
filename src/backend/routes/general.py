@@ -1,3 +1,14 @@
+"""General-purpose routes used by every account type.
+
+Covers authentication (register, login, get-auth-level), the public
+content lookups (get-public-recipe / -workout / get-foods), the
+content-creation endpoints (create-food / -recipe / -workout), the
+user-scoped fetches and deletions, and the user-side reporting flow.
+
+Every endpoint that mutates user data requires `auth_user` to validate
+the (huid, uname) pair before touching the database.
+"""
+
 import mysql.connector
 import db
 from fastapi import APIRouter
@@ -7,8 +18,11 @@ from utils import Result, log, data_base_err, add_food, hash_UID, hash_pass, cal
 
 router = APIRouter()
 
+
 @router.post("/api/report-content")
 async def report_content(huid: float, uname: str, nr: NewReport):
+    """File a user report against a recipe / workout / food. The body's
+    rep_type discriminator picks which kind of object obj_id refers to."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -44,6 +58,7 @@ async def report_content(huid: float, uname: str, nr: NewReport):
 
 @router.post("/api/create-food")
 async def create_food(nf: Food):
+    """Add a new entry to the shared Food library (admin tooling)."""
     '''
     Check if food exists,
     If it doesn't insert.
@@ -84,6 +99,12 @@ async def create_food(nf: Food):
 
 @router.post("/api/create-recipe")
 async def create_recipe(huid: float, uname: str, nr: NewRecipe, foods: list[Food]):
+    """Create a recipe owned by the authenticated user.
+
+    Each entry in `foods` is either a reference to an existing Food
+    (isNew=false) or a new Food to be inserted first (isNew=true).
+    Quantity rows then link Recipe to Food.
+    """
     """
     Notes:
     Sign in system may be abstracted into it's own function soon. That'll mean a new object like NewRecipe or Food.
@@ -190,6 +211,8 @@ async def create_recipe(huid: float, uname: str, nr: NewRecipe, foods: list[Food
 
 @router.post("/api/create-workout")
 async def create_workout(huid: float, uname: str, nw: NewWorkout):
+    """Create a workout owned by the authenticated user. Rejects a
+    duplicate where the same instructions already exist for the user."""
     """
     Creates a new workout for the authenticated user.
 
@@ -253,6 +276,8 @@ async def create_workout(huid: float, uname: str, nw: NewWorkout):
 
 @router.get("/api/get-user-recipe")
 async def get_user_recipe(huid: float, uname: str):
+    """Return all recipes owned by the authenticated user, including
+    each recipe's ingredient list."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -304,6 +329,8 @@ async def get_user_recipe(huid: float, uname: str):
 
 @router.get("/api/delete-recipe")
 async def delete_recipe(huid: float, uname: str, rid: int):
+    """Delete a recipe — only the recipe's owner may call this.
+    Quantity rows referencing the recipe are removed first."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -344,6 +371,7 @@ async def delete_recipe(huid: float, uname: str, rid: int):
 
 @router.get("/api/delete-workout")
 async def delete_workout(huid: float, uname: str, wid: int):
+    """Delete a workout — only the workout's owner may call this."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -381,6 +409,8 @@ async def delete_workout(huid: float, uname: str, wid: int):
 
 @router.get("/api/get-foods")
 async def get_foods():
+    """Public list of every food in the shared library — used by the
+    Create Recipe modal's ingredient dropdown."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -411,6 +441,8 @@ async def get_foods():
 
 @router.get("/api/get-public-recipe")
 async def get_public_recipe():
+    """Public list of recipes (isPublic=true) plus each recipe's
+    ingredients and owner. No authentication required."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -456,6 +488,8 @@ async def get_public_recipe():
 
 @router.get("/api/get-public-workout")
 async def get_public_workout():
+    """Public list of workouts (isPublic=true) with each workout's
+    owner attached. No authentication required."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -493,6 +527,7 @@ async def get_public_workout():
 
 @router.get("/api/get-user-workout")
 async def get_user_workout(huid: float, uname: str):
+    """Return all workouts owned by the authenticated user."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -536,6 +571,12 @@ async def get_user_workout(huid: float, uname: str):
 
 @router.post("/api/register")
 async def register(hasCG: bool, nu: NewUser):
+    """Create a new user account.
+
+    `hasCG` (hasCalorieGoal) controls whether the optional cal_goal
+    column is populated. The password is hashed with the account's
+    creation timestamp as the salt — see utils.hash_pass.
+    """
     # A few things:
     # 1. Check if the username is already in the database
     # 2. Check if the calorie goal is filled
@@ -607,6 +648,7 @@ async def register(hasCG: bool, nu: NewUser):
 
 @router.get("/api/get-food")
 async def get_food():
+    """Lighter-weight food list (name, cal, base_measure only)."""
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:
@@ -639,6 +681,8 @@ async def get_food():
 
 @router.get("/api/get-auth-level")
 async def get_auth_level(huid: float):
+    """Return the user's account_type so the frontend can decide which
+    role-specific nav links and pages to render."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -675,6 +719,12 @@ async def get_auth_level(huid: float):
 
 @router.get("/api/login")
 async def login(uname: str, upass: str):
+    """Authenticate by username + password.
+
+    On success the response carries the hashed UID (computed by
+    utils.hash_UID); the browser stores it as the session token and
+    uses it on every subsequent authenticated call.
+    """
     res = Result()
     with db.DBConnect() as (connection, cursor):
         try:
@@ -745,6 +795,8 @@ async def login(uname: str, upass: str):
 
 @router.get("/api/get-user-reports")
 async def get_user_reports(huid: float, uname: str, tz: str):
+    """Return reports filed BY the authenticated user, with timestamps
+    converted into the IANA timezone they pass in `tz`."""
     res = Result()
 
     try:
@@ -781,6 +833,8 @@ async def get_user_reports(huid: float, uname: str, tz: str):
 
 @router.get("/api/delete-report")
 async def delete_report(huid: float, uname: str, repid: int):
+    """Withdraw one of your own reports — only the report's author
+    may call this. Admins use /api/admin/delete-report instead."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -818,6 +872,8 @@ async def delete_report(huid: float, uname: str, repid: int):
 
 @router.get("/hello")
 async def read_root():
+    """Health-check endpoint. Returns a fixed Result envelope so an
+    uptime probe can confirm the API is alive."""
     ret = Result()
 
     ret.data["Message"] = "Hi! Hallo! Bonjour!"

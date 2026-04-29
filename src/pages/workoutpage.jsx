@@ -1,10 +1,19 @@
+// WorkoutPage (mounted at /workouts) — workout browsing + creation hub.
+// Mirrors the structure of foodpage.jsx but for workouts. Pulls public
+// and personal workouts, supports search, and exposes a Create Workout
+// modal.
+
 import { useEffect, useMemo, useState } from "react";
 import WorkoutCard from "./cards/WorkoutCard";
 
 const API_BASE =
   import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
-/* ================= NEW WORKOUT MODAL ================= */
+/* ================= NEW WORKOUT MODAL =================
+ * Inline modal for creating a workout. The Public toggle only renders
+ * when the parent passes canMakePublic — that gate is enforced at the
+ * page level based on the viewer's account type.
+ */
 function NewWorkoutModal({ open, onClose, onSave, canMakePublic }) {
   const [name, setName] = useState("");
   const [instructions, setInstructions] = useState("");
@@ -114,7 +123,10 @@ export default function WorkoutPage() {
   /* ================= AUTH ================= */
   const isAdmin = accountType === 0 || accountType === 3;
 
-  /* ================= LOAD WORKOUTS ================= */
+  /* ================= LOAD WORKOUTS =================
+   * Fetches public and personal workouts in parallel and merges them
+   * for display.
+   */
   async function loadWorkouts() {
     try {
       const headers = { "Content-Type": "application/json" };
@@ -147,7 +159,10 @@ export default function WorkoutPage() {
     loadWorkouts();
   }, []);
 
-  /* ================= DELETE ================= */
+  /* ================= DELETE =================
+   * Triggered by the trash icon on a WorkoutCard. The card only shows
+   * the icon when canDeleteWorkout() permits it.
+   */
   async function handleDeleteWorkout(wid) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this workout?"
@@ -206,6 +221,9 @@ export default function WorkoutPage() {
     }
   }
 
+  // Click handler for the "Create Workout +" button. Forces login first
+  // and refreshes the account type so the modal can decide whether to
+  // show the publishable toggle.
   async function handleCreateWorkoutClick() {
     if (
       !localStorage.getItem("username") ||
@@ -224,7 +242,10 @@ export default function WorkoutPage() {
     setCreateWorkoutModalOpen(true);
   }
 
-  /* ================= CREATE ================= */
+  /* ================= CREATE =================
+   * Persists the workout to the backend. The modal's `data` already
+   * has the right shape for /api/create-workout.
+   */
   async function handleCreateWorkout(data) {
     try {
       const res = await fetch(
@@ -251,14 +272,22 @@ export default function WorkoutPage() {
     }
   }
 
-  /* ================= PERMISSION ================= */
+  /* ================= PERMISSION =================
+   * Same rules as the recipe page:
+   *   - Delete shows on private workouts you own, or any workout when
+   *     the viewer is an admin.
+   *   - Report shows on public workouts only.
+   */
   const canDeleteWorkout = (workout) =>
     !workout.isPublic || (isAdmin && workout.isPublic);
 
   const canReportWorkout = (workout) =>
     workout.isPublic;
 
-  /* ================= REPORT ================= */
+  /* ================= REPORT =================
+   * Two-prompt flow (name + description) after the user confirms
+   * intent. Cancelling either prompt aborts the report.
+   */
   async function handleReportWorkout(wid) {
     const confirmed = window.confirm(
       "Are you sure you want to report this workout?"

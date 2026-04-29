@@ -1,3 +1,15 @@
+// NewWorkoutModal — standalone modal component for creating a workout.
+// (workoutpage.jsx contains its own inline equivalent; this is the
+// shared/component version kept for re-use.)
+//
+// Props:
+//   open           — controls whether the modal is rendered
+//   onClose        — called when the user cancels or clicks outside
+//   onSave         — called with { name, instructions, isPublic }
+//                    once the form validates
+//   canMakePublic  — when true, the public toggle is shown so trainers
+//                    and admins can mark a workout publishable
+
 import { useEffect, useState } from "react";
 
 export default function NewWorkoutModal({

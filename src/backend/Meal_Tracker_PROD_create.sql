@@ -1,8 +1,22 @@
+-- NutriFlow database schema.
+-- Source the file once against an empty MySQL database to create every
+-- table and foreign key the API expects. Use Meal_Tracker_PROD_drop.sql
+-- to roll the same set of objects back.
+--
+-- Tables:
+--   User      — accounts and account_type (1=Standard, 2=Chef, 3=Trainer)
+--   Admin     — promotion table; presence of a User_uid here grants admin
+--   Recipe    — user-owned recipes, with isPublic / isPublishable flags
+--   Food      — shared food library used by Recipe ingredients
+--   Quantity  — bridge table linking Recipe ↔ Food with a qty
+--   Workout   — user-owned workouts, mirrors Recipe's publish flow
+--   Report    — moderation queue (rep_type discriminates rcp/wrk/fdd)
+--
 -- Created by Redgate Data Modeler (https://datamodeler.redgate-platform.com)
 -- Last modification date: 2026-03-12 21:28:10.448
 
 -- tables
--- Table: Admin
+-- Table: Admin (membership grants admin rights to a User)
 CREATE TABLE Admin (
     aid int  NOT NULL AUTO_INCREMENT,
     User_uid int  NOT NULL,

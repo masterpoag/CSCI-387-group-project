@@ -1,3 +1,15 @@
+// RecipePage (mounted at /food) — recipe browsing + creation hub.
+//
+// Pulls public recipes plus the signed-in user's personal recipes, lets
+// the user search them, and exposes a Create Recipe modal that builds
+// recipes from a shared food library (with the option to define new
+// foods inline).
+//
+// Permission model:
+//   - Browsing public recipes: open to everyone.
+//   - Creating, deleting own recipes, reporting public recipes: requires
+//     login. Admins can additionally delete public recipes (see
+//     `canDeleteRecipe` below).
 
 import { useEffect, useMemo, useState } from "react";
 import RecipeCard from "./cards/RecipeCard";
@@ -8,6 +20,8 @@ import RecipeCard from "./cards/RecipeCard";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
 
+// Backend stores units as small ints. The dropdown shows the human-readable
+// label; the int is what gets sent to the API.
 const IMPERIAL_BASE_UNITS = [
   { value: 0, label: "Pound (lb)" },
   { value: 1, label: "Ounce (oz)" },
@@ -46,6 +60,9 @@ export default function RecipePage() {
   });
 
   // ================= LOAD RECIPES =================
+  // Fetches public recipes and the user's personal recipes in parallel,
+  // then de-duplicates by rid (a public recipe may also be one the user
+  // owns) so each recipe shows up only once in the grid.
   async function loadRecipes() {
     try {
       const headers = {
@@ -68,10 +85,11 @@ export default function RecipePage() {
       const publicRecipes = publicJson?.Data ?? [];
       const userRecipes = userJson?.Data ?? [];
 
+      // User recipes go first so when both lists contain the same recipe,
+      // the user's (private/Personal) view of it wins the de-dupe.
       const allRecipes = [...userRecipes, ...publicRecipes];
 
-      // Remove duplicates
-      // Change "rid" to whatever unique field your recipes use
+      // De-duplicate by recipe id.
       const uniqueRecipes = Array.from(
         new Map(allRecipes.map((recipe) => [recipe.rid, recipe])).values()
       );
@@ -88,6 +106,8 @@ export default function RecipePage() {
   }, []);
 
   // ================= FILTER =================
+  // Client-side search across recipe name, description, and instructions.
+  // Memoized so we only re-filter when the underlying list or term changes.
   const filteredRecipes = useMemo(() => {
     const term = searchTerm.toLowerCase();
 
@@ -100,6 +120,8 @@ export default function RecipePage() {
   }, [recipes, searchTerm]);
 
   // ================= DELETE =================
+  // Triggered by the trash icon on a RecipeCard. The card itself only
+  // renders the icon when canDeleteRecipe() returns true.
   async function handleDeleteRecipe(rid) {
     const confirmed = window.confirm(
       "Are you sure you want to delete this recipe?"
@@ -128,6 +150,11 @@ export default function RecipePage() {
   }
 
   // ================= PERMISSIONS =================
+  // Drives which icons appear on each RecipeCard.
+  //   - Delete is shown for the user's own (private) recipes, and for
+  //     any recipe when the viewer is an admin.
+  //   - Report is shown for public recipes only — there's no point
+  //     reporting your own private recipe.
   const isAdmin = accountType === 0 || accountType === 3;
 
   const canDeleteRecipe = (recipe) =>
@@ -136,6 +163,8 @@ export default function RecipePage() {
   const canReportRecipe = (recipe) => recipe.isPublic;
 
   // ================= REPORT =================
+  // Two-step prompt flow: confirm intent, then collect a short report
+  // name and a description. Cancelling either prompt aborts the report.
   async function handleReportRecipe(rid) {
     const confirmed = window.confirm(
       "Are you sure you want to report this recipe?"
@@ -185,6 +214,8 @@ export default function RecipePage() {
   }
 
   // ================= FOODS =================
+  // Loads the shared food library used to populate the ingredient
+  // dropdown in the Create Recipe modal.
   async function loadFoods() {
     setFoodsLoading(true);
 
@@ -210,6 +241,9 @@ export default function RecipePage() {
     );
   }, [availableFoods, foodSearch]);
 
+  // Adds an ingredient to the in-progress recipe using a food that
+  // already exists in the shared library. The user must pick a unit
+  // first because the same food can be used by weight or by volume.
   function handleAddExistingFood(food) {
     if (selectedUnit === null) {
       setFormError("Please select a unit first");
@@ -223,7 +257,7 @@ export default function RecipePage() {
         qty: 1,
         isNew: false,
         cal: Number(food.cal),
-        
+
         base_measurement: selectedUnit,
       },
     ]);
@@ -233,6 +267,8 @@ export default function RecipePage() {
     setShowFoodDropdown(false);
   }
 
+  // Adds a brand-new food to the recipe. The food is marked isNew=true
+  // so the backend knows to create the Food row before linking it.
   function handleSaveNewFood() {
     if (!newFood.name.trim()) {
       setFormError("Food name is required");
@@ -288,6 +324,8 @@ export default function RecipePage() {
     setRecipeFoods((prev) => prev.filter((_, i) => i !== index));
   }
 
+  // Shapes the in-progress recipe state into the request body that
+  // /api/create-recipe expects: a NewRecipe plus the ingredient list.
   function buildCreateRecipePayload() {
     return {
       nr: {
@@ -301,6 +339,9 @@ export default function RecipePage() {
   }
 
   // ================= ACCOUNT =================
+  // Mirrors the App-level account-type check so that this page can
+  // independently decide which actions to expose (e.g., the "publish
+  // recipe" toggle in the Create Recipe modal).
   async function loadAccountType() {
     const token = localStorage.getItem("token");
 
@@ -330,6 +371,8 @@ export default function RecipePage() {
   }
 
   // ================= CREATE RECIPE =================
+  // Click handler for the "Create Recipe +" button. Gates the modal
+  // behind authentication and redirects to the login page if needed.
   async function handleCreateRecipeClick() {
     if (!localStorage.getItem("username") || !localStorage.getItem("token")) {
       const confirmed = window.confirm(
@@ -347,6 +390,9 @@ export default function RecipePage() {
     setCreateRecipeModalOpen(true);
   }
 
+  // Submits the in-progress recipe to the backend. Validates locally
+  // first to avoid round-trips for obvious problems (no name, no
+  // ingredients), then resets the modal on success.
   async function handleCreateRecipe() {
     setFormError("");
 

@@ -320,6 +320,7 @@ New Recipe modal opens.
 | Recipe Name   | Yes      | For example, *Chicken Stir Fry*.            |
 | Description   | No       | A short summary of the recipe.              |
 | Instructions  | No       | Step-by-step cooking directions.            |
+
 <img width="2542" height="1272" alt="image" src="https://github.com/user-attachments/assets/0e711550-425c-4a5d-824c-ad9a2bd823e8" />
 
 
@@ -454,6 +455,7 @@ Create Workout modal opens.
 |---------------|----------|---------------------------------------------|
 | Workout Name  | Yes      | For example, *Push Day*.                    |
 | Instructions  | No       | The routine, sets, and reps.                |
+
 <img width="2547" height="1275" alt="image" src="https://github.com/user-attachments/assets/d3a7d528-50ff-458f-b404-c2bb64905b9b" />
 
 (3)  Switch between **Keep Private** and **Submit for Publishing** toggle

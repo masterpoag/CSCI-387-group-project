@@ -1,8 +1,15 @@
+# Reference example showing the minimal MySQL connection pattern used
+# throughout the backend. Not imported by the running app — the real
+# helpers live in db.py. Kept around as documentation / a quick local
+# sanity check that .EXAMPLEENV is well-formed.
+
 import mysql.connector
 import json
 
 db_key = ''
 
+# Loads the JSON-formatted example env so a developer can confirm their
+# credentials parse before pointing the app at the production env file.
 with open('.EXAMPLEENV', 'r') as file:
     db_key = json.load(file)
 

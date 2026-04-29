@@ -1,4 +1,11 @@
+// RecipeCard — single recipe tile rendered in the Recipes grid.
+// Also reused by the Nutritionist Dashboard to show recipes pending
+// review. Receives all data plus action callbacks from its parent.
+
 import React from "react";
+
+// Maps the integer base_measure stored in the database to a human
+// readable unit name. Mirrors IMPERIAL_BASE_UNITS in foodpage.jsx.
 const BASE_MEASUREMENTS = {
   0: "Pound",
   1: "Ounce",
@@ -6,6 +13,8 @@ const BASE_MEASUREMENTS = {
   3: "Teaspoon",
 };
 
+// Builds the ingredient line shown on the card, e.g. "2 Cups of rice".
+// The unit name is pluralized when the quantity is anything other than 1.
 function formatIngredient(item) {
   const measurement =
     BASE_MEASUREMENTS[item.base_measure] ?? "Unknown";
@@ -15,12 +24,14 @@ function formatIngredient(item) {
   } of ${item.name}`;
 }
 
-// Refactored my code from my cocktail website for this project. This should work for what we need it for.
-
 /**
- * Schema
- * @param {Object} recipe
- * @param {Array} ingredients - Array of objects containing { name, qty, cal }
+ * Props:
+ *   recipe       — recipe object (rid, name, desc, instruct, isPublic, ...)
+ *   ingredients  — array of { name, qty, cal, base_measure }
+ *   onDelete     — callback invoked with rid when the trash icon is clicked
+ *   canDelete    — whether to show the trash icon at all
+ *   onReport     — callback invoked with rid when the flag icon is clicked
+ *   canReport    — whether to show the flag icon at all
  */
 
 

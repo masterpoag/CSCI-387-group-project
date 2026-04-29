@@ -1,3 +1,13 @@
+// NewFoodModal — popup launched from the Create Recipe modal when the
+// user wants to add a food that isn't yet in the shared library.
+//
+// Props:
+//   open       — controls whether the modal is rendered
+//   unitLabel  — currently-selected unit (Pound / Cup / etc.) shown
+//                inline so the user knows what "Calories per 1 X" means
+//   onClose    — called when the user cancels or clicks outside
+//   onSave     — called with { name, cal } once the form validates
+
 import { useEffect, useState } from "react";
 
 export default function NewFoodModal({

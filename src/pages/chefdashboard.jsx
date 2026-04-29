@@ -1,3 +1,7 @@
+// ChefDashboard — recipe review queue for users with the Chef role
+// (and Admins). Shows recipes that creators have flagged as
+// publishable and lets the reviewer Approve & Publish or Reject them.
+
 import { useEffect, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
@@ -7,6 +11,8 @@ export default function ChefDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Pulls every recipe currently flagged as publishable. Refreshed after
+  // each approve/reject action so the list reflects the latest state.
   async function loadRecipes() {
     setLoading(true);
     setError("");
@@ -33,6 +39,8 @@ export default function ChefDashboard() {
     loadRecipes();
   }, []);
 
+  // Approve & Publish: marks the recipe as public so it shows up on
+  // the Recipes page for everyone.
   async function handleApprove(rid) {
     console.log("Approving recipe with rid:", rid);
     const confirmed = window.confirm(
@@ -58,6 +66,9 @@ export default function ChefDashboard() {
     }
   }
 
+  // Reject: clears the publishable flag so the recipe drops off the
+  // review queue. The recipe itself is not deleted — its owner keeps it
+  // as a personal recipe.
   async function handleReject(rid) {
     const confirmed = window.confirm(
       "Are you sure you want to reject this recipe? This will remove it from the publishable list."

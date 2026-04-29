@@ -1,3 +1,10 @@
+"""Chef-only routes (recipe publishing).
+
+All endpoints under /api/chef require a valid login plus either the
+Chef account type or membership in the Admin table. They power the
+Nutritionist Dashboard in the frontend.
+"""
+
 import mysql.connector
 import db
 from fastapi import APIRouter
@@ -8,6 +15,11 @@ router = APIRouter(prefix="/api/chef")
 
 @router.get("/get-publishable-recipes")
 async def get_publishable_recipes(huid: float, uname: str):
+    """Return every recipe currently flagged as publishable.
+
+    Each entry includes the owner's username and the ingredient list
+    so the dashboard card can render in one render pass.
+    """
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -56,6 +68,12 @@ async def get_publishable_recipes(huid: float, uname: str):
 
 @router.get("/set-recipe-publicity")
 async def set_recipe_publicity(huid: float, uname: str, rid: int, isPublic: bool):
+    """Approve / unpublish a recipe.
+
+    Setting isPublic=true on a recipe that wasn't flagged publishable
+    is rejected. Once a recipe is acted on, isPublishable is cleared so
+    it doesn't keep showing up in the review queue.
+    """
     res = Result()
 
     with db.DBConnect() as (connection, cursor):

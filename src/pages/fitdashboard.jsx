@@ -1,3 +1,7 @@
+// FitDashboard — workout review queue for users with the Trainer
+// (gym instructor) role and Admins. Mirrors ChefDashboard but for
+// workouts: trainers approve & publish, or reject, publishable workouts.
+
 import { useEffect, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "https://gp.vroey.us";
@@ -7,6 +11,8 @@ export default function FitDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Pulls every workout currently flagged as publishable. Refreshed
+  // after each approve/reject action.
   async function loadWorkouts() {
     setLoading(true);
     setError("");
@@ -35,6 +41,8 @@ export default function FitDashboard() {
     loadWorkouts();
   }, []);
 
+  // Approve & Publish: marks the workout public so it appears on the
+  // shared Workouts page for everyone.
   async function handleApprove(wid) {
     const confirmed = window.confirm(
       "Are you sure you want to approve and publish this workout?"
@@ -63,6 +71,8 @@ export default function FitDashboard() {
     }
   }
 
+  // Reject: clears the publishable flag so the workout drops off the
+  // review queue. The workout stays as a personal workout for its owner.
   async function handleReject(wid) {
     const confirmed = window.confirm(
       "Are you sure you want to reject this workout? This will remove it from the publishable list."

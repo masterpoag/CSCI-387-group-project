@@ -1,5 +1,11 @@
+// RecipeForm — early standalone recipe-creation component.
+// Superseded by the inline modal in foodpage.jsx, but kept around as a
+// reference implementation and for any standalone usage. Uses MOCK_FOODS
+// when no live API is available so the form is testable in isolation.
+
 import React, { useState } from "react";
 
+// Same int-to-label mapping used elsewhere in the app.
 const MEASUREMENT_OPTIONS = [
   { value: 0, label: "Pound" },
   { value: 1, label: "Ounce" },

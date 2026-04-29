@@ -1,3 +1,10 @@
+"""Fitness-instructor (Trainer) routes for workout publishing.
+
+Mirrors chef.py but for workouts. All endpoints require the Trainer
+account type or membership in the Admin table, and they back the Gym
+Instructor Dashboard in the frontend.
+"""
+
 import mysql.connector
 import db
 from fastapi import APIRouter
@@ -8,6 +15,8 @@ router = APIRouter(prefix="/api/fit")
 
 @router.get("/get-publishable-workout")
 async def get_publishable_workout(huid: float, uname: str):
+    """Return every workout currently flagged as publishable, with
+    the owner's username attached for the dashboard cards."""
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
@@ -48,6 +57,12 @@ async def get_publishable_workout(huid: float, uname: str):
 
 @router.get("/set-workout-publicity")
 async def set_workout_publicity(huid: float, uname: str, wid: int, isPublic: bool):
+    """Approve / unpublish a workout.
+
+    Same rule as the chef endpoint: a workout that wasn't flagged
+    publishable cannot be made public, and a successful action clears
+    the publishable flag so it leaves the review queue.
+    """
     res = Result()
 
     with db.DBConnect() as (connection, cursor):
