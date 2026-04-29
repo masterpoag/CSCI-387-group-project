@@ -250,22 +250,17 @@ cleared and you are returned to a logged-out state.
 NutriFlow supports light mode and dark mode. The toggle button sits at the
 right end of the top navigation bar.
 
-> ![Top navigation bar with the sun and moon theme toggle button on the right](docs/images/theme-toggle.png)
->
-> *Figure 3 — Theme toggle button. The sun icon (☀) appears in light mode and
-> the moon icon (☾) appears in dark mode.*
+<img width="2558" height="1278" alt="image" src="https://github.com/user-attachments/assets/00d97610-2be4-47bd-b3d4-d35f51f3c4d5" />
 
-Click the icon to switch themes. Your choice is saved across visits. On first
-visit, NutriFlow follows your system theme preference.
+<img width="2558" height="1277" alt="image" src="https://github.com/user-attachments/assets/5b8e2972-8561-4b21-b568-12ede042038c" />
+
 
 ### Home Page
 
 The home page introduces NutriFlow and provides quick links to the main
 features.
 
-> ![Home page showing the hero section, three feature cards, and the workflow steps](docs/images/home-page.png)
->
-> *Figure 4 — Home page sections.*
+<img width="2555" height="1273" alt="image" src="https://github.com/user-attachments/assets/bb21a68b-c9a3-437f-ba9d-0fb6834658db" />
 
 The page contains:
 
