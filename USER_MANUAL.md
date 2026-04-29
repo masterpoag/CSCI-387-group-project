@@ -341,7 +341,7 @@ New Recipe modal opens.
      table. Click the **×** button to remove an ingredient.
 <img width="2545" height="1277" alt="image" src="https://github.com/user-attachments/assets/b7b21e89-96dc-4408-90e5-58a3a95611da" />
 
-> ![Ingredient table inside the Create Recipe modal showing two foods with quantity, calories, unit, and remove button](docs/images/recipe-ingredients.png)
+
 >
 > *Figure 7 — Ingredient table. Edit quantity directly in the row. Click ×
 > to remove an ingredient.*
